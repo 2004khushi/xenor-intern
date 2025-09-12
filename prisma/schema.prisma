@@ -74,3 +74,18 @@ model Order {
   @@unique([tenant_id, shopify_id], name: "uniq_orders_tenant_shopify")
 }
 
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
+
+model MagicLinkToken {
+  id        Int      @id @default(autoincrement())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+}
+
