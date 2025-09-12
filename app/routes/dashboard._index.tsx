@@ -6,16 +6,14 @@ import { requireUserEmail } from "../utils/session.server";
 import { useEffect, useMemo, useState } from "react";
 import {
   ResponsiveContainer,
-  LineChart, Line,
   CartesianGrid, XAxis, YAxis, Tooltip, Legend,
   AreaChart, Area,
-  BarChart, Bar,
   PieChart, Pie, Cell,
 } from "recharts";
 import {
   Users, ShoppingCart, DollarSign, TrendingUp,
   Download, CalendarRange, Store, LogOut,
-  ArrowUp, ArrowDown, Sparkles, Star, AlertCircle,
+  ArrowUp, ArrowDown, AlertCircle,
   BarChart3, Activity
 } from "lucide-react";
 
@@ -129,15 +127,9 @@ export default function Dashboard() {
   const data = useLoaderData<typeof loader>();
   const [mounted, setMounted] = useState(false);
   const [search] = useSearchParams();
-  const [activeChart, setActiveChart] = useState("area");
-  const [animationKey, setAnimationKey] = useState(0);
 
   useEffect(() => {
     setMounted(true);
-    const interval = setInterval(() => {
-      setAnimationKey(prev => prev + 1);
-    }, 5000);
-    return () => clearInterval(interval);
   }, []);
 
   const currency = useMemo(
@@ -158,7 +150,6 @@ export default function Dashboard() {
 
   const revTrend = trendPercent(data.series, "revenue");
   const ordTrend = trendPercent(data.series, "orders");
-  const spark = data.series.slice(-7);
 
   function exportCSV() {
     const rows: string[] = [];
@@ -185,209 +176,59 @@ export default function Dashboard() {
     URL.revokeObjectURL(url);
   }
 
-  const pieData = data.top.slice(0, 3).map((customer, index) => ({
-    name: customer.name || customer.email || "Unknown",
-    value: customer.spend,
-    color: ["#ffdd00", "#ffaa00", "#ffcc00"][index]
-  }));
-
   const COLORS = ['#ffdd00', '#ffaa00', '#ffcc00', '#ff6b00', '#ff9900'];
 
   return (
-    <div style={{ 
-      backgroundColor: '#0a0a0a', 
-      color: 'white', 
-      minHeight: '100vh',
-      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif",
-      padding: '0',
-      margin: '0'
-    }}>
+    <div className="dashboard-container">
       {/* Header */}
-      <header style={{ 
-        backgroundColor: '#111', 
-        borderBottom: '1px solid #333', 
-        padding: '20px 0',
-        background: 'linear-gradient(135deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 100%)'
-      }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-              <div style={{ 
-                height: '50px', 
-                width: '50px', 
-                borderRadius: '12px', 
-                background: 'linear-gradient(135deg, #ffdd00, #ffaa00)',
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                boxShadow: '0 4px 15px rgba(255, 221, 0, 0.3)'
-              }}>
+      <header className="dashboard-header">
+        <div className="header-content">
+          <div className="header-top">
+            <div className="logo-section">
+              <div className="logo">
                 <BarChart3 size={24} color="black" />
               </div>
               <div>
-                <h1 style={{ 
-                  fontSize: '28px', 
-                  fontWeight: '800', 
-                  margin: '0',
-                  background: 'linear-gradient(90deg, #ffdd00, #ffaa00)',
-                  backgroundClip: 'text',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent'
-                }}>
-                  Analytics Dashboard
-                </h1>
-                <p style={{ color: '#ffdd00', margin: '5px 0 0', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <h1>Analytics Dashboard</h1>
+                <p>
                   <Activity size={14} /> Real-time business insights
                 </p>
               </div>
             </div>
-            <Link 
-              to="/logout" 
-              style={{ 
-                display: 'inline-flex', 
-                alignItems: 'center',
-                background: 'linear-gradient(135deg, #ffdd00, #ffaa00)',
-                color: 'black',
-                padding: '12px 24px',
-                borderRadius: '30px',
-                textDecoration: 'none',
-                fontWeight: '700',
-                boxShadow: '0 4px 15px rgba(255, 221, 0, 0.3)',
-                transition: 'all 0.3s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 20px rgba(255, 221, 0, 0.4)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 15px rgba(255, 221, 0, 0.3)';
-              }}
-            >
-              <LogOut size={16} style={{ marginRight: '8px' }} />
+            <Link to="/logout" className="signout-btn">
+              <LogOut size={16} />
               Sign out
             </Link>
           </div>
 
           {/* Filters */}
-          <div style={{ 
-            backgroundColor: 'rgba(30, 30, 30, 0.7)', 
-            borderRadius: '16px', 
-            border: '1px solid #333',
-            padding: '20px',
-            backdropFilter: 'blur(10px)',
-            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)'
-          }}>
-            <Form method="get" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', alignItems: 'end' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#ffdd00', marginBottom: '8px' }}>
-                  <Store size={14} style={{ display: 'inline', marginRight: '5px' }} /> Store
+          <div className="filters-section">
+            <Form method="get" className="filters-form">
+              <div className="filter-group">
+                <label>
+                  <Store size={14} /> Store
                 </label>
-                <select 
-                  name="tenant" 
-                  defaultValue={data.selectedTenant} 
-                  style={{ 
-                    width: '100%', 
-                    padding: '12px',
-                    borderRadius: '8px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                    border: '1px solid #444',
-                    color: 'white',
-                    fontSize: '14px'
-                  }}
-                >
+                <select name="tenant" defaultValue={data.selectedTenant}>
                   {data.tenants.map((t) => (
-                    <option key={t} value={t} style={{ backgroundColor: '#222', color: 'white' }}>{t}</option>
+                    <option key={t} value={t}>{t}</option>
                   ))}
                 </select>
               </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#ffdd00', marginBottom: '8px' }}>
-                  <CalendarRange size={14} style={{ display: 'inline', marginRight: '5px' }} /> From
+              <div className="filter-group">
+                <label>
+                  <CalendarRange size={14} /> From
                 </label>
-                <input 
-                  name="from"
-                  type="date" 
-                  defaultValue={data.from} 
-                  style={{ 
-                    width: '100%', 
-                    padding: '12px',
-                    borderRadius: '8px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                    border: '1px solid #444',
-                    color: 'white',
-                    fontSize: '14px'
-                  }}
-                />
+                <input name="from" type="date" defaultValue={data.from} />
               </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#ffdd00', marginBottom: '8px' }}>
-                  To
-                </label>
-                <input 
-                  name="to"
-                  type="date" 
-                  defaultValue={data.to}
-                  style={{ 
-                    width: '100%', 
-                    padding: '12px',
-                    borderRadius: '8px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                    border: '1px solid #444',
-                    color: 'white',
-                    fontSize: '14px'
-                  }}
-                />
+              <div className="filter-group">
+                <label>To</label>
+                <input name="to" type="date" defaultValue={data.to} />
               </div>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button style={{ 
-                  flex: '1', 
-                  padding: '12px 20px',
-                  borderRadius: '30px',
-                  background: 'linear-gradient(135deg, #ffdd00, #ffaa00)',
-                  color: 'black',
-                  border: 'none',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 15px rgba(255, 221, 0, 0.3)',
-                  transition: 'all 0.3s ease',
-                  fontSize: '14px'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(255, 221, 0, 0.4)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 15px rgba(255, 221, 0, 0.3)';
-                }}
-                >
+              <div className="filter-buttons">
+                <button type="submit" className="apply-btn">
                   Apply Filters
                 </button>
-                <button 
-                  type="button"
-                  onClick={exportCSV}
-                  style={{ 
-                    padding: '12px',
-                    borderRadius: '30px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                    border: '1px solid #444',
-                    color: '#ffdd00',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transition: 'all 0.3s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                  }}
-                >
+                <button type="button" onClick={exportCSV} className="export-btn">
                   <Download size={18} />
                 </button>
               </div>
@@ -396,9 +237,9 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
+      <main className="dashboard-main">
         {/* KPIs */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '30px' }}>
+        <div className="kpi-grid">
           <KPICard
             title="Total Customers"
             icon={<Users size={20} color="black" />}
@@ -429,23 +270,9 @@ export default function Dashboard() {
         </div>
 
         {/* Charts */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px', marginBottom: '30px' }}>
-          <div style={{ 
-            backgroundColor: '#111', 
-            borderRadius: '16px', 
-            border: '1px solid #333',
-            padding: '25px',
-            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)'
-          }}>
-            <h2 style={{ 
-              margin: '0 0 20px', 
-              fontSize: '20px', 
-              fontWeight: '700', 
-              color: '#ffdd00',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px'
-            }}>
+        <div className="chart-section">
+          <div className="chart-card">
+            <h2>
               <Activity size={20} /> Revenue & Orders Timeline
             </h2>
             {mounted && data.series.length ? (
@@ -465,14 +292,7 @@ export default function Dashboard() {
                   <XAxis dataKey="date" stroke="#ffdd00" />
                   <YAxis yAxisId="revenue" orientation="left" stroke="#ffdd00" />
                   <YAxis yAxisId="orders" orientation="right" stroke="#ffaa00" />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: '#111', 
-                      border: '1px solid #333',
-                      borderRadius: '8px',
-                      color: 'white'
-                    }} 
-                  />
+                  <Tooltip contentStyle={{ backgroundColor: '#111', border: '1px solid #333', borderRadius: '8px', color: 'white' }} />
                   <Area yAxisId="revenue" type="monotone" dataKey="revenue" stroke="#ffdd00" fill="url(#revGradient)" strokeWidth={2} />
                   <Area yAxisId="orders" type="monotone" dataKey="orders" stroke="#ffaa00" fill="url(#orderGradient)" strokeWidth={2} />
                 </AreaChart>
@@ -481,73 +301,28 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+        <div className="bottom-section">
           {/* Top Customers */}
-          <div style={{ 
-            backgroundColor: '#111', 
-            borderRadius: '16px', 
-            border: '1px solid #333',
-            padding: '25px',
-            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)'
-          }}>
-            <h2 style={{ 
-              margin: '0 0 20px', 
-              fontSize: '20px', 
-              fontWeight: '700', 
-              color: '#ffdd00',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px'
-            }}>
+          <div className="card">
+            <h2>
               <Users size={20} /> Top 5 Customers
             </h2>
             {mounted && data.top.length ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+              <div className="customers-list">
                 {data.top.map((customer, index) => (
-                  <div
-                    key={customer.customer_id}
-                    style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'space-between',
-                      padding: '15px',
-                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                      borderRadius: '12px',
-                      border: '1px solid #333',
-                      transition: 'all 0.3s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'rgba(255, 221, 0, 0.1)';
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-                      e.currentTarget.style.transform = 'translateY(0)';
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{ 
-                        height: '40px', 
-                        width: '40px', 
-                        borderRadius: '10px', 
-                        backgroundColor: '#ffdd00',
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center',
-                        fontWeight: 'bold',
-                        color: 'black',
-                        boxShadow: '0 4px 10px rgba(255, 221, 0, 0.3)'
-                      }}>
-                        {index < 3 ? <Star size={16} /> : index + 1}
+                  <div key={customer.customer_id} className="customer-card">
+                    <div className="customer-info">
+                      <div className="customer-avatar">
+                        {index < 3 ? "🏆" : index + 1}
                       </div>
                       <div>
-                        <div style={{ fontWeight: '600', color: 'white' }}>{customer.name || "Unknown"}</div>
-                        <div style={{ fontSize: '14px', color: '#ffdd00' }}>{customer.email}</div>
+                        <div className="customer-name">{customer.name || "Unknown"}</div>
+                        <div className="customer-email">{customer.email}</div>
                       </div>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontWeight: 'bold', color: '#ffdd00' }}>{currency.format(customer.spend)}</div>
-                      <div style={{ fontSize: '12px', color: '#888' }}>Total Spend</div>
+                    <div className="customer-spend">
+                      <div className="spend-amount">{currency.format(customer.spend)}</div>
+                      <div className="spend-label">Total Spend</div>
                     </div>
                   </div>
                 ))}
@@ -556,23 +331,9 @@ export default function Dashboard() {
           </div>
 
           {/* Customer Distribution */}
-          <div style={{ 
-            backgroundColor: '#111', 
-            borderRadius: '16px', 
-            border: '1px solid #333',
-            padding: '25px',
-            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)'
-          }}>
-            <h2 style={{ 
-              margin: '0 0 20px', 
-              fontSize: '20px', 
-              fontWeight: '700', 
-              color: '#ffdd00',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px'
-            }}>
-              <PieChart size={20} /> Top Customer Distribution
+          <div className="card">
+            <h2>
+              📊 Top Customer Distribution
             </h2>
             {mounted && data.top.length ? (
               <ResponsiveContainer width="100%" height={300}>
@@ -595,12 +356,7 @@ export default function Dashboard() {
                   </Pie>
                   <Tooltip 
                     formatter={(value) => [currency.format(Number(value)), "Spend"]}
-                    contentStyle={{ 
-                      backgroundColor: '#111', 
-                      border: '1px solid #333',
-                      borderRadius: '8px',
-                      color: 'white'
-                    }} 
+                    contentStyle={{ backgroundColor: '#111', border: '1px solid #333', borderRadius: '8px', color: 'white' }} 
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -608,6 +364,318 @@ export default function Dashboard() {
           </div>
         </div>
       </main>
+
+      <style>{`
+        .dashboard-container {
+          background-color: #0a0a0a;
+          color: white;
+          min-height: 100vh;
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+        }
+
+        .dashboard-header {
+          background: linear-gradient(135deg, #000000 0%, #111111 100%);
+          border-bottom: 1px solid #333;
+          padding: 20px 0;
+        }
+
+        .header-content {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 0 20px;
+        }
+
+        .header-top {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 20px;
+        }
+
+        .logo-section {
+          display: flex;
+          align-items: center;
+          gap: 15px;
+        }
+
+        .logo {
+          height: 50px;
+          width: 50px;
+          border-radius: 12px;
+          background: linear-gradient(135deg, #ffdd00, #ffaa00);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 4px 15px rgba(255, 221, 0, 0.3);
+        }
+
+        .logo-section h1 {
+          font-size: 28px;
+          font-weight: 800;
+          margin: 0;
+          background: linear-gradient(90deg, #ffdd00, #ffaa00);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
+
+        .logo-section p {
+          color: #ffdd00;
+          margin: 5px 0 0;
+          font-size: 14px;
+          display: flex;
+          align-items: center;
+          gap: 5px;
+        }
+
+        .signout-btn {
+          display: inline-flex;
+          align-items: center;
+          background: linear-gradient(135deg, #ffdd00, #ffaa00);
+          color: black;
+          padding: 12px 24px;
+          border-radius: 30px;
+          text-decoration: none;
+          font-weight: 700;
+          box-shadow: 0 4px 15px rgba(255, 221, 0, 0.3);
+          transition: all 0.3s ease;
+        }
+
+        .signout-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(255, 221, 0, 0.4);
+        }
+
+        .signout-btn svg {
+          margin-right: 8px;
+        }
+
+        .filters-section {
+          background: rgba(30, 30, 30, 0.7);
+          border-radius: 16px;
+          border: 1px solid #333;
+          padding: 20px;
+          backdrop-filter: blur(10px);
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .filters-form {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 15px;
+          align-items: end;
+        }
+
+        .filter-group label {
+          display: block;
+          font-size: 14px;
+          font-weight: 600;
+          color: #ffdd00;
+          margin-bottom: 8px;
+          display: flex;
+          align-items: center;
+          gap: 5px;
+        }
+
+        .filter-group select,
+        .filter-group input {
+          width: 100%;
+          padding: 12px;
+          border-radius: 8px;
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid #444;
+          color: white;
+          font-size: 14px;
+        }
+
+        .filter-buttons {
+          display: flex;
+          gap: 10px;
+        }
+
+        .apply-btn {
+          flex: 1;
+          padding: 12px 20px;
+          border-radius: 30px;
+          background: linear-gradient(135deg, #ffdd00, #ffaa00);
+          color: black;
+          border: none;
+          font-weight: 600;
+          cursor: pointer;
+          box-shadow: 0 4px 15px rgba(255, 221, 0, 0.3);
+          transition: all 0.3s ease;
+          font-size: 14px;
+        }
+
+        .apply-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(255, 221, 0, 0.4);
+        }
+
+        .export-btn {
+          padding: 12px;
+          border-radius: 30px;
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid #444;
+          color: #ffdd00;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.3s ease;
+        }
+
+        .export-btn:hover {
+          background: rgba(255, 255, 255, 0.2);
+          transform: translateY(-2px);
+        }
+
+        .dashboard-main {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 20px;
+        }
+
+        .kpi-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+          gap: 20px;
+          margin-bottom: 30px;
+        }
+
+        .chart-section {
+          margin-bottom: 30px;
+        }
+
+        .chart-card {
+          background: #111;
+          border-radius: 16px;
+          border: 1px solid #333;
+          padding: 25px;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .chart-card h2 {
+          margin: 0 0 20px;
+          font-size: 20px;
+          font-weight: 700;
+          color: #ffdd00;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .bottom-section {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 20px;
+        }
+
+        .card {
+          background: #111;
+          border-radius: 16px;
+          border: 1px solid #333;
+          padding: 25px;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .card h2 {
+          margin: 0 0 20px;
+          font-size: 20px;
+          font-weight: 700;
+          color: #ffdd00;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .customers-list {
+          display: flex;
+          flex-direction: column;
+          gap: 15px;
+        }
+
+        .customer-card {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 15px;
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 12px;
+          border: 1px solid #333;
+          transition: all 0.3s ease;
+        }
+
+        .customer-card:hover {
+          background: rgba(255, 221, 0, 0.1);
+          transform: translateY(-2px);
+        }
+
+        .customer-info {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .customer-avatar {
+          height: 40px;
+          width: 40px;
+          border-radius: 10px;
+          background: #ffdd00;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: bold;
+          color: black;
+          box-shadow: 0 4px 10px rgba(255, 221, 0, 0.3);
+        }
+
+        .customer-name {
+          font-weight: 600;
+          color: white;
+        }
+
+        .customer-email {
+          font-size: 14px;
+          color: #ffdd00;
+        }
+
+        .customer-spend {
+          text-align: right;
+        }
+
+        .spend-amount {
+          font-weight: bold;
+          color: #ffdd00;
+        }
+
+        .spend-label {
+          font-size: 12px;
+          color: #888;
+        }
+
+        .empty-chart {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          height: 200px;
+          text-align: center;
+          color: #888;
+        }
+
+        .empty-chart h3 {
+          margin: 0 0 8px;
+          font-size: 16px;
+          font-weight: 600;
+          color: white;
+        }
+
+        .empty-chart p {
+          margin: 0;
+          font-size: 14px;
+          max-width: 200px;
+        }
+      `}</style>
     </div>
   );
 }
@@ -623,78 +691,105 @@ function KPICard({ title, value, icon, delta, positiveIsGood, gradient }: any) {
       : "#ff6b6b";
 
   return (
-    <div style={{ 
-      backgroundColor: '#111', 
-      borderRadius: '16px', 
-      border: '1px solid #333',
-      padding: '25px',
-      position: 'relative',
-      overflow: 'hidden',
-      boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)',
-      transition: 'all 0.3s ease'
-    }}
-    onMouseEnter={(e) => {
-      e.currentTarget.style.transform = 'translateY(-5px)';
-      e.currentTarget.style.boxShadow = '0 15px 40px rgba(255, 221, 0, 0.2)';
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.transform = 'translateY(0)';
-      e.currentTarget.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.5)';
-    }}
-    >
-      <div style={{ 
-        position: 'absolute', 
-        top: '0', 
-        right: '0', 
-        bottom: '0', 
-        left: '0',
-        background: gradient,
-        opacity: '0.1'
-      }}></div>
+    <div className="kpi-card">
+      <div className="kpi-bg" style={{ background: gradient }}></div>
       
-      <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-        <div style={{ flex: '1' }}>
-          <div style={{ fontSize: '14px', color: '#ffdd00', marginBottom: '12px', fontWeight: '600' }}>{title}</div>
-          <div style={{ fontSize: '28px', fontWeight: 'bold', color: 'white', marginBottom: '12px' }}>{value}</div>
+      <div className="kpi-content">
+        <div className="kpi-text">
+          <div className="kpi-title">{title}</div>
+          <div className="kpi-value">{value}</div>
           {delta !== undefined && (
-            <div style={{ fontSize: '14px', color, display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600' }}>
+            <div className="kpi-delta" style={{ color }}>
               {delta >= 0 ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
               {sign}{Math.abs(delta).toFixed(1)}%
             </div>
           )}
         </div>
-        <div style={{ 
-          height: '60px', 
-          width: '60px', 
-          borderRadius: '12px', 
-          background: gradient,
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center',
-          color: 'black',
-          boxShadow: '0 4px 15px rgba(255, 221, 0, 0.3)'
-        }}>
+        <div className="kpi-icon" style={{ background: gradient }}>
           {icon}
         </div>
       </div>
+
+      <style>{`
+        .kpi-card {
+          background: #111;
+          border-radius: 16px;
+          border: 1px solid #333;
+          padding: 25px;
+          position: relative;
+          overflow: hidden;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+          transition: all 0.3s ease;
+        }
+
+        .kpi-card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 15px 40px rgba(255, 221, 0, 0.2);
+        }
+
+        .kpi-bg {
+          position: absolute;
+          top: 0;
+          right: 0;
+          bottom: 0;
+          left: 0;
+          opacity: 0.1;
+        }
+
+        .kpi-content {
+          position: relative;
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+        }
+
+        .kpi-text {
+          flex: 1;
+        }
+
+        .kpi-title {
+          font-size: 14px;
+          color: #ffdd00;
+          margin-bottom: 12px;
+          font-weight: 600;
+        }
+
+        .kpi-value {
+          font-size: 28px;
+          font-weight: bold;
+          color: white;
+          margin-bottom: 12px;
+        }
+
+        .kpi-delta {
+          font-size: 14px;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          font-weight: 600;
+        }
+
+        .kpi-icon {
+          height: 60px;
+          width: 60px;
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: black;
+          box-shadow: 0 4px 15px rgba(255, 221, 0, 0.3);
+        }
+      `}</style>
     </div>
   );
 }
 
 function EmptyChart({ note = "No data available" }: { note?: string }) {
   return (
-    <div style={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      alignItems: 'center', 
-      justifyContent: 'center', 
-      height: '200px',
-      textAlign: 'center',
-      color: '#888'
-    }}>
+    <div className="empty-chart">
       <AlertCircle size={40} style={{ marginBottom: '15px', color: '#ffdd00' }} />
-      <h3 style={{ margin: '0 0 8px', fontSize: '16px', fontWeight: '600', color: 'white' }}>No Data Available</h3>
-      <p style={{ margin: '0', fontSize: '14px', maxWidth: '200px' }}>
+      <h3>No Data Available</h3>
+      <p>
         {note}. Try adjusting your date range or selecting a different store.
       </p>
     </div>
