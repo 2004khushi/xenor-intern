@@ -36,21 +36,37 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   }
 
   // Insert customer
+    // Upsert customer
   try {
-    await prisma.customer.create({
-      data: {
-        tenant_id: shop,
+    const tenant = shop.toLowerCase();
+
+    await prisma.customer.upsert({
+      where: {
+        tenant_id_shopify_id: {
+          tenant_id: tenant,
+          shopify_id: String(payload.id),
+        },
+      },
+      create: {
+        tenant_id: tenant,
         shopify_id: String(payload.id),
         email: payload.email ?? null,
         first_name: payload.first_name ?? null,
         last_name: payload.last_name ?? null,
       },
+      update: {
+        email: payload.email ?? null,
+        first_name: payload.first_name ?? null,
+        last_name: payload.last_name ?? null,
+      },
     });
-    console.log("✅ [customers/create] customer saved");
+
+    console.log("✅ [customers/create] customer upserted");
   } catch (e) {
-    console.error("❌ [customers/create] DB insert failed:", e);
-    return new Response("DB insert error", { status: 500 });
+    console.error("❌ [customers/create] DB upsert failed:", e);
+    return new Response("DB upsert error", { status: 500 });
   }
+
 
   return new Response("ok", { status: 200 });
 };

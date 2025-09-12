@@ -34,36 +34,43 @@ model Session {
 
 
 model Product {
-  id          Int      @id @default(autoincrement())
-  tenant_id   String   // Multi-tenant isolation
-  shopify_id  String   // Shopify's product ID
-  title       String?
-  price       Float?
-  created_at  DateTime @default(now())
-  
-  @@map("products") // Maps to "products" table
+  id         Int      @id @default(autoincrement())
+  tenant_id  String
+  shopify_id String
+  title      String?
+  price      Float?
+  created_at DateTime @default(now())
+
+  @@map("products")
+  @@index([tenant_id], map: "idx_products_tenant")
+  @@unique([tenant_id, shopify_id], name: "uniq_products_tenant_shopify")
 }
 
 model Customer {
-  id          Int      @id @default(autoincrement())
-  tenant_id   String   // Multi-tenant isolation
-  shopify_id  String   // Shopify's customer ID
-  email       String?
-  first_name  String?
-  last_name   String?
-  created_at  DateTime @default(now())
-  
-  @@map("customers") // Maps to "customers" table
+  id         Int      @id @default(autoincrement())
+  tenant_id  String
+  shopify_id String
+  email      String?
+  first_name String?
+  last_name  String?
+  created_at DateTime @default(now())
+
+  @@map("customers")
+  @@index([tenant_id], map: "idx_customers_tenant")
+  @@unique([tenant_id, shopify_id], name: "uniq_customers_tenant_shopify")
 }
 
 model Order {
   id               Int      @id @default(autoincrement())
-  tenant_id        String   // Multi-tenant isolation
-  shopify_id       String   // Shopify's order ID
-  customer_id      String?  // Linked to customer
+  tenant_id        String
+  shopify_id       String
+  customer_id      String?
   total_price      Float?
   financial_status String?
   created_at       DateTime @default(now())
-  
-  @@map("orders") // Maps to "orders" table
+
+  @@map("orders")
+  @@index([tenant_id], map: "idx_orders_tenant")
+  @@unique([tenant_id, shopify_id], name: "uniq_orders_tenant_shopify")
 }
+
