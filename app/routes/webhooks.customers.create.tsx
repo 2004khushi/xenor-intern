@@ -3,26 +3,54 @@ import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { topic, shop, payload } = await authenticate.webhook(request);
-  
-  console.log("👤 CUSTOMER CREATED!");
-  console.log("Shop:", shop);
-  console.log("Customer data:", payload);
+  console.log("➡️ [customers/create] incoming", new Date().toISOString());
 
+  // Authenticate (HMAC)
+  let topic: string, shop: string, payload: any;
+  try {
+    ({ topic, shop, payload } = await authenticate.webhook(request));
+    console.log("✅ [customers/create] authenticated:", topic, shop);
+  } catch (e) {
+    console.error("❌ [customers/create] webhook auth failed:", e);
+    return new Response("Unauthorized", { status: 401 });
+  }
+
+  if (topic !== "CUSTOMERS_CREATE") {
+    console.warn("⚠️ [customers/create] unexpected topic:", topic);
+  }
+
+  // Ensure Prisma can connect (temporary debug)
+  try {
+    await prisma.$connect();
+    const host = (() => {
+      try {
+        return new URL(process.env.DATABASE_URL || "").host;
+      } catch {
+        return "unknown-host";
+      }
+    })();
+    console.log("✅ [customers/create] Prisma connected:", host);
+  } catch (e) {
+    console.error("❌ [customers/create] Prisma connect failed:", e);
+    return new Response("DB connect error", { status: 500 });
+  }
+
+  // Insert customer
   try {
     await prisma.customer.create({
       data: {
         tenant_id: shop,
-        shopify_id: payload.id.toString(),
-        email: payload.email,
-        first_name: payload.first_name,
-        last_name: payload.last_name,
-      }
+        shopify_id: String(payload.id),
+        email: payload.email ?? null,
+        first_name: payload.first_name ?? null,
+        last_name: payload.last_name ?? null,
+      },
     });
-    console.log("✅ Customer saved to database!");
-  } catch (error) {
-    console.error("❌ Database error:", error);
+    console.log("✅ [customers/create] customer saved");
+  } catch (e) {
+    console.error("❌ [customers/create] DB insert failed:", e);
+    return new Response("DB insert error", { status: 500 });
   }
 
-  return new Response("Customer webhook received!", { status: 200 });
+  return new Response("ok", { status: 200 });
 };
