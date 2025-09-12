@@ -15,10 +15,12 @@ export async function action({ request }: ActionFunctionArgs) {
   if (!email || !email.includes("@")) {
     return json({ error: "Enter a valid email" }, { status: 400 });
   }
-  await issueMagicLink(email);
+
+  const origin = new URL(request.url).origin; // <- this deployment’s origin
+  await issueMagicLink(email, origin);
+
   return json({ success: true });
 }
-
 export default function LoginPage() {
   const data = useActionData<typeof action>();
   return (

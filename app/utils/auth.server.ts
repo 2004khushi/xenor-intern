@@ -2,7 +2,7 @@ import { randomUUID } from "crypto";
 import prisma from "../db.server";
 import { sendMagicLink } from "./mailer.server";
 
-export async function issueMagicLink(email: string) {
+export async function issueMagicLink(email: string, origin?: string) {
   const token = randomUUID().replace(/-/g, "");
   const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
@@ -10,7 +10,7 @@ export async function issueMagicLink(email: string) {
     data: { email: email.toLowerCase(), token, expiresAt },
   });
 
-  await sendMagicLink(email, token);
+  await sendMagicLink(email, token, origin); // <- pass origin
 }
 
 export async function consumeMagicLink(email: string, token: string) {
