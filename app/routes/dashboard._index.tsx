@@ -10,10 +10,13 @@ import {
   CartesianGrid, XAxis, YAxis, Tooltip, Legend,
   AreaChart, Area,
   BarChart, Bar,
+  PieChart, Pie, Cell,
 } from "recharts";
 import {
   Users, ShoppingCart, DollarSign, TrendingUp,
   Download, CalendarRange, Store, LogOut,
+  ArrowUp, ArrowDown, Sparkles, Star, AlertCircle,
+  BarChart3, Activity
 } from "lucide-react";
 
 /* ----------------------------- Loader (server) ---------------------------- */
@@ -126,14 +129,23 @@ export default function Dashboard() {
   const data = useLoaderData<typeof loader>();
   const [mounted, setMounted] = useState(false);
   const [search] = useSearchParams();
-  useEffect(() => setMounted(true), []);
+  const [activeChart, setActiveChart] = useState("area");
+  const [animationKey, setAnimationKey] = useState(0);
+
+  useEffect(() => {
+    setMounted(true);
+    const interval = setInterval(() => {
+      setAnimationKey(prev => prev + 1);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   const currency = useMemo(
     () => new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }),
     []
   );
 
-  // helpers
+  // Helper functions
   function trendPercent(series: any[], key: "revenue" | "orders") {
     if (!series?.length) return 0;
     const mid = Math.floor(series.length / 2) || 1;
@@ -143,9 +155,10 @@ export default function Dashboard() {
     if (!first) return 100;
     return ((second - first) / first) * 100;
   }
+
   const revTrend = trendPercent(data.series, "revenue");
   const ordTrend = trendPercent(data.series, "orders");
-  const spark = data.series.slice(-12);
+  const spark = data.series.slice(-7);
 
   function exportCSV() {
     const rows: string[] = [];
@@ -172,51 +185,111 @@ export default function Dashboard() {
     URL.revokeObjectURL(url);
   }
 
-  return (
-    <div className="min-h-screen bg-[radial-gradient(1200px_700px_at_10%_-10%,rgba(99,102,241,0.20),transparent),radial-gradient(1000px_600px_at_90%_-20%,rgba(16,185,129,0.15),transparent)]">
-      {/* Header */}
-      <header className="sticky top-0 z-30 backdrop-blur supports-[backdrop-filter]:bg-white/50 bg-white/70 dark:bg-zinc-900/70 border-b border-black/5">
-        <div className="mx-auto max-w-7xl px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-violet-500 to-emerald-500 shadow-inner" />
-            <div>
-              <h1 className="text-lg font-semibold">Insights Dashboard</h1>
-              <p className="text-xs text-zinc-500">Business performance at a glance</p>
-            </div>
-          </div>
-          <Link to="/logout" className="inline-flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg bg-zinc-900 text-white hover:bg-black transition">
-            <LogOut className="h-4 w-4" />
-            Sign out
-          </Link>
-        </div>
+  const pieData = data.top.slice(0, 3).map((customer, index) => ({
+    name: customer.name || customer.email || "Unknown",
+    value: customer.spend,
+    color: ["#8B5CF6", "#06D6A0", "#FFD23F"][index]
+  }));
 
-        {/* Filters */}
-        <div className="mx-auto max-w-7xl px-4 pb-4">
-          <div className="rounded-2xl border border-black/5 bg-white/60 dark:bg-zinc-900/60 backdrop-blur p-4">
-            <Form method="get" className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
-              <div className="flex flex-col">
-                <label className="text-xs text-zinc-500 mb-1 flex items-center gap-1"><Store className="h-3.5 w-3.5" /> Store</label>
-                <select name="tenant" defaultValue={data.selectedTenant} className="w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ring-violet-400 bg-white/80">
+  const COLORS = ['#8B5CF6', '#06D6A0', '#FFD23F', '#FF6B6B', '#4ECDC4'];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/30 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-1/2 -left-40 w-80 h-80 bg-emerald-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute -bottom-40 right-1/3 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl animate-pulse delay-2000"></div>
+      </div>
+
+      {/* Floating particles */}
+      {[...Array(20)].map((_, i) => (
+        <div
+          key={i}
+          className="absolute animate-float opacity-20"
+          style={{
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            animationDelay: `${Math.random() * 5}s`,
+            animationDuration: `${3 + Math.random() * 4}s`
+          }}
+        >
+          <Sparkles className="h-4 w-4 text-purple-400" />
+        </div>
+      ))}
+
+      {/* Header */}
+      <header className="relative z-10 backdrop-blur-xl bg-white/10 border-b border-white/20 shadow-2xl">
+        <div className="mx-auto max-w-7xl px-6 py-6">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-purple-500 via-pink-500 to-emerald-500 shadow-2xl flex items-center justify-center animate-pulse">
+                  <BarChart3 className="h-6 w-6 text-white" />
+                </div>
+                <div className="absolute -top-1 -right-1 h-4 w-4 bg-emerald-400 rounded-full animate-ping"></div>
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-white via-purple-200 to-emerald-200 bg-clip-text text-transparent">
+                  Insights Dashboard
+                </h1>
+                <p className="text-purple-200 text-sm flex items-center gap-2">
+                  <Activity className="h-4 w-4 animate-pulse" />
+                  Real-time business analytics
+                </p>
+              </div>
+            </div>
+            <Link to="/logout" className="group relative overflow-hidden rounded-xl bg-gradient-to-r from-red-500 to-pink-500 px-4 py-2 text-white font-medium shadow-lg hover:shadow-red-500/25 transition-all duration-300 hover:scale-105">
+              <LogOut className="h-4 w-4 inline mr-2" />
+              Sign out
+              <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-pink-600 transform scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-300"></div>
+            </Link>
+          </div>
+
+          {/* Filters */}
+          <div className="relative rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 p-6 shadow-2xl">
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-emerald-500/10 rounded-2xl"></div>
+            <Form method="get" className="relative grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-purple-200 flex items-center gap-2">
+                  <Store className="h-4 w-4" /> Store
+                </label>
+                <select name="tenant" defaultValue={data.selectedTenant} className="w-full rounded-xl bg-white/20 border border-white/30 px-4 py-3 text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent backdrop-blur-sm transition-all duration-300">
                   {data.tenants.map((t) => (
-                    <option key={t} value={t}>{t}</option>
+                    <option key={t} value={t} className="bg-slate-800 text-white">{t}</option>
                   ))}
                 </select>
               </div>
-              <div className="flex flex-col">
-                <label className="text-xs text-zinc-500 mb-1 flex items-center gap-1"><CalendarRange className="h-3.5 w-3.5" /> From</label>
-                <input name="from" type="date" defaultValue={data.from} className="w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ring-violet-400 bg-white/80"/>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-purple-200 flex items-center gap-2">
+                  <CalendarRange className="h-4 w-4" /> From
+                </label>
+                <input 
+                  name="from"
+                  type="date" 
+                  defaultValue={data.from} 
+                  className="w-full rounded-xl bg-white/20 border border-white/30 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent backdrop-blur-sm transition-all duration-300"
+                />
               </div>
-              <div className="flex flex-col">
-                <label className="text-xs text-zinc-500 mb-1">To</label>
-                <input name="to" type="date" defaultValue={data.to} className="w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ring-violet-400 bg-white/80"/>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-purple-200">To</label>
+                <input 
+                  name="to"
+                  type="date" 
+                  defaultValue={data.to}
+                  className="w-full rounded-xl bg-white/20 border border-white/30 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent backdrop-blur-sm transition-all duration-300"
+                />
               </div>
-              <div className="flex gap-2">
-                <button className="flex-1 rounded-lg bg-zinc-900 text-white px-4 py-2 hover:bg-black transition">
-                  Apply
+              <div className="flex gap-3">
+                <button className="flex-1 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 font-medium shadow-lg hover:shadow-purple-500/25 transition-all duration-300 hover:scale-105 transform">
+                  Apply Filters
                 </button>
-                <button type="button" onClick={exportCSV}
-                        className="rounded-lg border px-3 py-2 bg-white/80 hover:bg-white inline-flex items-center gap-2">
-                  <Download className="h-4 w-4" /> CSV
+                <button 
+                  type="button"
+                  onClick={exportCSV}
+                  className="rounded-xl bg-white/20 border border-white/30 px-4 py-3 text-white hover:bg-white/30 transition-all duration-300 hover:scale-105 transform backdrop-blur-sm"
+                >
+                  <Download className="h-5 w-5" />
                 </button>
               </div>
             </Form>
@@ -224,102 +297,240 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-6 space-y-6">
+      <main className="relative z-10 mx-auto max-w-7xl px-6 py-8 space-y-8">
         {/* KPIs */}
-        <section className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <section className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <KPI
-            title="Total customers"
-            icon={<Users className="h-5 w-5" />}
+            title="Total Customers"
+            icon={<Users className="h-6 w-6" />}
             value={data.totals.totalCustomers.toLocaleString()}
             spark={spark.map((d) => ({ x: d.date, y: d.orders }))}
+            gradient="from-blue-500 to-cyan-500"
+            delay="0"
           />
           <KPI
-            title="Orders (in range)"
-            icon={<ShoppingCart className="h-5 w-5" />}
+            title="Orders (Range)"
+            icon={<ShoppingCart className="h-6 w-6" />}
             value={data.totals.totalOrdersInRange.toLocaleString()}
             delta={ordTrend}
             spark={spark.map((d) => ({ x: d.date, y: d.orders }))}
+            gradient="from-emerald-500 to-teal-500"
+            delay="100"
           />
           <KPI
-            title="Revenue (in range)"
-            icon={<DollarSign className="h-5 w-5" />}
+            title="Revenue (Range)"
+            icon={<DollarSign className="h-6 w-6" />}
             value={currency.format(data.totals.totalRevenueInRange)}
             delta={revTrend}
             positiveIsGood
             spark={spark.map((d) => ({ x: d.date, y: d.revenue }))}
+            gradient="from-purple-500 to-pink-500"
+            delay="200"
           />
           <KPI
-            title="Avg order value"
-            icon={<TrendingUp className="h-5 w-5" />}
+            title="Avg Order Value"
+            icon={<TrendingUp className="h-6 w-6" />}
             value={currency.format(data.totals.avgOrderValue)}
             spark={spark.map((d) => ({ x: d.date, y: d.revenue }))}
+            gradient="from-orange-500 to-red-500"
+            delay="300"
           />
         </section>
 
         {/* Charts */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card title="Revenue by day">
-            {mounted && data.series.length ? (
-              <ResponsiveContainer width="100%" height={320}>
-                <AreaChart data={data.series} margin={{ left: 8, right: 8, top: 8, bottom: 8 }}>
-                  <defs>
-                    <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="rgb(99 102 241)" stopOpacity={0.45}/>
-                      <stop offset="100%" stopColor="rgb(99 102 241)" stopOpacity={0.05}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" tickMargin={8}/>
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Area type="monotone" dataKey="revenue" stroke="rgb(99 102 241)" fill="url(#revGrad)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            ) : <EmptyChart />}
-          </Card>
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <Card title="Revenue & Orders Timeline" delay="400">
+              <div className="flex gap-2 mb-4">
+                {[
+                  { key: "area", label: "Area", icon: Activity },
+                  { key: "bar", label: "Bar", icon: BarChart3 },
+                  { key: "line", label: "Line", icon: TrendingUp }
+                ].map(({ key, label, icon: Icon }) => (
+                  <button
+                    key={key}
+                    onClick={() => setActiveChart(key)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-300 flex items-center gap-1 ${
+                      activeChart === key
+                        ? "bg-purple-500 text-white shadow-lg"
+                        : "bg-white/10 text-purple-200 hover:bg-white/20"
+                    }`}
+                  >
+                    <Icon className="h-3 w-3" />
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {mounted && data.series.length ? (
+                <ResponsiveContainer width="100%" height={350}>
+                  {activeChart === "area" ? (
+                    <AreaChart data={data.series} margin={{ left: 20, right: 20, top: 20, bottom: 20 }}>
+                      <defs>
+                        <linearGradient id="revGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#8B5CF6" stopOpacity={0.8}/>
+                          <stop offset="100%" stopColor="#8B5CF6" stopOpacity={0.1}/>
+                        </linearGradient>
+                        <linearGradient id="orderGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#06D6A0" stopOpacity={0.8}/>
+                          <stop offset="100%" stopColor="#06D6A0" stopOpacity={0.1}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
+                      <XAxis dataKey="date" stroke="#ffffff60" />
+                      <YAxis yAxisId="revenue" orientation="left" stroke="#8B5CF6" />
+                      <YAxis yAxisId="orders" orientation="right" stroke="#06D6A0" />
+                      <Tooltip 
+                        contentStyle={{ 
+                          background: 'rgba(15, 23, 42, 0.9)', 
+                          border: '1px solid rgba(255,255,255,0.2)',
+                          borderRadius: '12px',
+                          color: '#fff'
+                        }} 
+                      />
+                      <Legend />
+                      <Area yAxisId="revenue" type="monotone" dataKey="revenue" stroke="#8B5CF6" strokeWidth={3} fill="url(#revGradient)" />
+                      <Area yAxisId="orders" type="monotone" dataKey="orders" stroke="#06D6A0" strokeWidth={3} fill="url(#orderGradient)" />
+                    </AreaChart>
+                  ) : activeChart === "bar" ? (
+                    <BarChart data={data.series} margin={{ left: 20, right: 20, top: 20, bottom: 20 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
+                      <XAxis dataKey="date" stroke="#ffffff60" />
+                      <YAxis stroke="#ffffff60" />
+                      <Tooltip 
+                        contentStyle={{ 
+                          background: 'rgba(15, 23, 42, 0.9)', 
+                          border: '1px solid rgba(255,255,255,0.2)',
+                          borderRadius: '12px',
+                          color: '#fff'
+                        }} 
+                      />
+                      <Legend />
+                      <Bar dataKey="orders" fill="#06D6A0" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="revenue" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  ) : (
+                    <LineChart data={data.series} margin={{ left: 20, right: 20, top: 20, bottom: 20 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
+                      <XAxis dataKey="date" stroke="#ffffff60" />
+                      <YAxis stroke="#ffffff60" />
+                      <Tooltip 
+                        contentStyle={{ 
+                          background: 'rgba(15, 23, 42, 0.9)', 
+                          border: '1px solid rgba(255,255,255,0.2)',
+                          borderRadius: '12px',
+                          color: '#fff'
+                        }} 
+                      />
+                      <Legend />
+                      <Line type="monotone" dataKey="revenue" stroke="#8B5CF6" strokeWidth={3} dot={{ fill: '#8B5CF6', strokeWidth: 2, r: 4 }} />
+                      <Line type="monotone" dataKey="orders" stroke="#06D6A0" strokeWidth={3} dot={{ fill: '#06D6A0', strokeWidth: 2, r: 4 }} />
+                    </LineChart>
+                  )}
+                </ResponsiveContainer>
+              ) : <EmptyChart />}
+            </Card>
+          </div>
 
-          <Card title="Orders by day">
-            {mounted && data.series.length ? (
-              <ResponsiveContainer width="100%" height={320}>
-                <BarChart data={data.series} margin={{ left: 8, right: 8, top: 8, bottom: 8 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" tickMargin={8}/>
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="orders" radius={[6, 6, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : <EmptyChart />}
-          </Card>
+          <div>
+            <Card title="Top Customer Distribution" delay="500">
+              {mounted && pieData.length ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={pieData}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      innerRadius={40}
+                      paddingAngle={5}
+                      dataKey="value"
+                      animationBegin={0}
+                      animationDuration={1000}
+                    >
+                      {pieData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      formatter={(value) => [currency.format(value), "Spend"]}
+                      contentStyle={{ 
+                        background: 'rgba(15, 23, 42, 0.9)', 
+                        border: '1px solid rgba(255,255,255,0.2)',
+                        borderRadius: '12px',
+                        color: '#fff'
+                      }} 
+                    />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : <EmptyChart />}
+            </Card>
+          </div>
         </section>
 
         <section>
-          <Card title="Top 5 customers by spend (in range)">
+          <Card title="Top 5 Customers" delay="600">
             {mounted && data.top.length ? (
-              <ResponsiveContainer width="100%" height={360}>
-                <BarChart
-                  data={[...data.top].reverse()}
-                  layout="vertical"
-                  margin={{ left: 120, right: 16, top: 8, bottom: 8 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" />
-                  <YAxis
-                    type="category"
-                    dataKey={(r: any) => (r.name?.trim() ? r.name : (r.email || r.customer_id || "Unknown"))}
-                    width={180}
-                  />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="spend" radius={[6, 6, 6, 6]} />
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="space-y-4">
+                {data.top.map((customer, index) => (
+                  <div
+                    key={customer.customer_id}
+                    className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300 transform hover:scale-105"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={`h-10 w-10 rounded-full bg-gradient-to-br ${
+                        index === 0 ? "from-yellow-400 to-yellow-600" :
+                        index === 1 ? "from-gray-300 to-gray-500" :
+                        index === 2 ? "from-orange-400 to-orange-600" :
+                        "from-purple-400 to-purple-600"
+                      } flex items-center justify-center shadow-lg`}>
+                        {index < 3 ? (
+                          <Star className="h-5 w-5 text-white" />
+                        ) : (
+                          <span className="text-white font-bold">{index + 1}</span>
+                        )}
+                      </div>
+                      <div>
+                        <div className="font-medium text-white">{customer.name || "Unknown"}</div>
+                        <div className="text-sm text-purple-200">{customer.email}</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-bold text-lg text-emerald-400">{currency.format(customer.spend)}</div>
+                      <div className="text-xs text-purple-200">Total Spend</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             ) : <EmptyChart note="No customers in this range" />}
           </Card>
         </section>
       </main>
+
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        .animate-float {
+          animation: float 6s ease-in-out infinite;
+        }
+        @keyframes slideUp {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-slideUp {
+          animation: slideUp 0.6s ease-out forwards;
+          opacity: 0;
+        }
+      `}</style>
     </div>
   );
 }
@@ -333,6 +544,8 @@ function KPI({
   delta,
   positiveIsGood,
   spark,
+  gradient,
+  delay,
 }: {
   title: string;
   value: string;
@@ -340,34 +553,51 @@ function KPI({
   delta?: number;
   positiveIsGood?: boolean;
   spark?: { x: string; y: number }[];
+  gradient: string;
+  delay: string;
 }) {
   const sign = delta === undefined ? undefined : delta >= 0 ? "+" : "";
-  const color =
-    delta === undefined
-      ? "text-zinc-500"
-      : delta >= 0
-      ? positiveIsGood ? "text-emerald-600" : "text-amber-600"
-      : "text-rose-600";
+  const color = delta === undefined 
+    ? "text-purple-200" 
+    : delta >= 0 
+      ? positiveIsGood ? "text-emerald-400" : "text-yellow-400"
+      : "text-red-400";
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-black/5 bg-white/70 dark:bg-zinc-900/70 backdrop-blur p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <div className="text-xs text-zinc-500">{title}</div>
-          <div className="text-2xl font-semibold">{value}</div>
+    <div 
+      className="group relative overflow-hidden rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 p-6 shadow-2xl hover:shadow-purple-500/20 transition-all duration-500 hover:scale-105 transform animate-slideUp"
+      style={{ animationDelay: `${delay}ms` }}
+    >
+      <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-10 group-hover:opacity-20 transition-opacity duration-500`}></div>
+      
+      <div className="relative flex items-start justify-between">
+        <div className="flex-1">
+          <div className="text-sm text-purple-200 mb-2 font-medium">{title}</div>
+          <div className="text-3xl font-bold text-white mb-2">{value}</div>
           {delta !== undefined && (
-            <div className={`text-xs mt-1 ${color}`}>{sign}{delta.toFixed(1)}%</div>
+            <div className={`text-sm flex items-center gap-1 ${color}`}>
+              {delta >= 0 ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
+              {sign}{Math.abs(delta).toFixed(1)}%
+            </div>
           )}
         </div>
-        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500/80 to-emerald-500/80 flex items-center justify-center text-white shadow-inner">
+        <div className={`h-14 w-14 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
           {icon}
         </div>
       </div>
+      
       {spark && spark.length > 1 && (
-        <div className="mt-3 h-14">
+        <div className="mt-4 h-16 opacity-80">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={spark}>
-              <Line type="monotone" dataKey="y" dot={false} strokeWidth={2} />
+              <Line 
+                type="monotone" 
+                dataKey="y" 
+                stroke="#ffffff" 
+                strokeWidth={2} 
+                dot={false} 
+                strokeOpacity={0.8}
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -376,21 +606,35 @@ function KPI({
   );
 }
 
-function Card({ title, children }: { title: string; children: React.ReactNode }) {
+function Card({ title, children, delay = "0" }: { title: string; children: React.ReactNode; delay?: string }) {
   return (
-    <div className="rounded-2xl border border-black/5 bg-white/70 dark:bg-zinc-900/70 backdrop-blur p-4">
-      <div className="flex items-center justify-between mb-2">
-        <div className="font-semibold">{title}</div>
+    <div 
+      className="rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 p-6 shadow-2xl hover:shadow-purple-500/10 transition-all duration-500 animate-slideUp"
+      style={{ animationDelay: `${delay}ms` }}
+    >
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="font-bold text-xl text-white">{title}</h3>
       </div>
       {children}
     </div>
   );
 }
 
-function EmptyChart({ note = "No data for this range" }: { note?: string }) {
+function EmptyChart({ note = "No data available" }: { note?: string }) {
   return (
-    <div className="h-[320px] flex items-center justify-center text-sm text-zinc-500 border border-dashed rounded-xl">
-      {note}
+    <div className="flex flex-col items-center justify-center h-64 text-center">
+      <div className="rounded-full bg-white/10 p-6 mb-4">
+        <AlertCircle className="h-12 w-12 text-purple-300" />
+      </div>
+      <h3 className="text-lg font-medium text-white mb-2">No Data Available</h3>
+      <p className="text-purple-200 text-sm max-w-xs">
+        {note}. Try adjusting your date range or selecting a different store.
+      </p>
+      <div className="mt-4 flex gap-2">
+        <div className="h-2 w-2 bg-purple-400 rounded-full animate-pulse"></div>
+        <div className="h-2 w-2 bg-purple-400 rounded-full animate-pulse delay-100"></div>
+        <div className="h-2 w-2 bg-purple-400 rounded-full animate-pulse delay-200"></div>
+      </div>
     </div>
   );
 }
