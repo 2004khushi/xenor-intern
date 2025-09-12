@@ -6,10 +6,7 @@ import { useState, useEffect } from "react";
 import { login } from "../../shopify.server";
 import styles from "./styles.module.css";
 
-import yellowSnowboard from "../assets/snowboard.png";
-import carbonSkis from "../assets/bindings.png";
-import winterGloves from "../assets/boots.png";
-import sportsHelmet from "../assets/goggles.png";
+
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
@@ -31,7 +28,7 @@ export default function App() {
       price: "₹11,100.00",
       stock: 12,
       orders: 45,
-      image: yellowSnowboard
+      image: "/assets/snowboard.png"
     },
     {
       id: 2,
@@ -40,7 +37,7 @@ export default function App() {
       price: "₹1,001.00",
       stock: 8,
       orders: 32,
-      image: carbonSkis
+      image: "/assets/bindings.png"
     },
     {
       id: 3,
@@ -49,7 +46,7 @@ export default function App() {
       price: "₹20,001.00",
       stock: 25,
       orders: 78,
-      image: winterGloves
+      image: "/assets/boots.png"
     },
     {
       id: 4,
@@ -58,7 +55,7 @@ export default function App() {
       price: "₹10,001.00",
       stock: 3,
       orders: 3,
-      image: sportsHelmet
+      image: "/assets/goggles.png"
     }
   ]);
 
