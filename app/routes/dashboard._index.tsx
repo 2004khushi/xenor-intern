@@ -194,102 +194,186 @@ export default function Dashboard() {
   const COLORS = ['#8B5CF6', '#06D6A0', '#FFD23F', '#FF6B6B', '#4ECDC4'];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 relative overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/30 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute top-1/2 -left-40 w-80 h-80 bg-emerald-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute -bottom-40 right-1/3 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl animate-pulse delay-2000"></div>
-      </div>
-
-      {/* Floating particles */}
-      {[...Array(20)].map((_, i) => (
-        <div
-          key={i}
-          className="absolute animate-float opacity-20"
-          style={{
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            animationDelay: `${Math.random() * 5}s`,
-            animationDuration: `${3 + Math.random() * 4}s`
-          }}
-        >
-          <Sparkles className="h-4 w-4 text-purple-400" />
-        </div>
-      ))}
-
+    <div style={{ 
+      backgroundColor: '#000000', 
+      color: 'white', 
+      minHeight: '100vh',
+      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif",
+      padding: '0',
+      margin: '0'
+    }}>
       {/* Header */}
-      <header className="relative z-10 backdrop-blur-xl bg-white/10 border-b border-white/20 shadow-2xl">
-        <div className="mx-auto max-w-7xl px-6 py-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-purple-500 via-pink-500 to-emerald-500 shadow-2xl flex items-center justify-center animate-pulse">
-                  <BarChart3 className="h-6 w-6 text-white" />
-                </div>
-                <div className="absolute -top-1 -right-1 h-4 w-4 bg-emerald-400 rounded-full animate-ping"></div>
+      <header style={{ 
+        backgroundColor: '#111', 
+        borderBottom: '1px solid #222', 
+        padding: '20px 0'
+      }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <div style={{ 
+                height: '45px', 
+                width: '45px', 
+                borderRadius: '12px', 
+                background: 'linear-gradient(135deg, #8B5CF6, #06D6A0)',
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                boxShadow: '0 4px 15px rgba(139, 92, 246, 0.3)'
+              }}>
+                <BarChart3 size={20} color="white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-white via-purple-200 to-emerald-200 bg-clip-text text-transparent">
+                <h1 style={{ 
+                  fontSize: '24px', 
+                  fontWeight: '700', 
+                  margin: '0',
+                  background: 'linear-gradient(90deg, #fff, #8B5CF6)',
+                  backgroundClip: 'text',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent'
+                }}>
                   Insights Dashboard
                 </h1>
-                <p className="text-purple-200 text-sm flex items-center gap-2">
-                  <Activity className="h-4 w-4 animate-pulse" />
-                  Real-time business analytics
+                <p style={{ color: '#8B5CF6', margin: '5px 0 0', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <Activity size={14} /> Real-time business analytics
                 </p>
               </div>
             </div>
-            <Link to="/logout" className="group relative overflow-hidden rounded-xl bg-gradient-to-r from-red-500 to-pink-500 px-4 py-2 text-white font-medium shadow-lg hover:shadow-red-500/25 transition-all duration-300 hover:scale-105">
-              <LogOut className="h-4 w-4 inline mr-2" />
+            <Link 
+              to="/logout" 
+              style={{ 
+                display: 'inline-flex', 
+                alignItems: 'center',
+                background: 'linear-gradient(135deg, #EF4444, #DC2626)',
+                color: 'white',
+                padding: '10px 20px',
+                borderRadius: '8px',
+                textDecoration: 'none',
+                fontWeight: '500',
+                boxShadow: '0 4px 15px rgba(239, 68, 68, 0.3)',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 20px rgba(239, 68, 68, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 15px rgba(239, 68, 68, 0.3)';
+              }}
+            >
+              <LogOut size={16} style={{ marginRight: '8px' }} />
               Sign out
-              <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-pink-600 transform scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-300"></div>
             </Link>
           </div>
 
           {/* Filters */}
-          <div className="relative rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 p-6 shadow-2xl">
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-emerald-500/10 rounded-2xl"></div>
-            <Form method="get" className="relative grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-purple-200 flex items-center gap-2">
-                  <Store className="h-4 w-4" /> Store
+          <div style={{ 
+            backgroundColor: 'rgba(30, 30, 30, 0.7)', 
+            borderRadius: '12px', 
+            border: '1px solid #333',
+            padding: '20px',
+            backdropFilter: 'blur(10px)'
+          }}>
+            <Form method="get" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', alignItems: 'end' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#8B5CF6', marginBottom: '8px' }}>
+                  <Store size={14} style={{ display: 'inline', marginRight: '5px' }} /> Store
                 </label>
-                <select name="tenant" defaultValue={data.selectedTenant} className="w-full rounded-xl bg-white/20 border border-white/30 px-4 py-3 text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent backdrop-blur-sm transition-all duration-300">
+                <select 
+                  name="tenant" 
+                  defaultValue={data.selectedTenant} 
+                  style={{ 
+                    width: '100%', 
+                    padding: '12px',
+                    borderRadius: '8px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    border: '1px solid #444',
+                    color: 'white'
+                  }}
+                >
                   {data.tenants.map((t) => (
-                    <option key={t} value={t} className="bg-slate-800 text-white">{t}</option>
+                    <option key={t} value={t} style={{ backgroundColor: '#222', color: 'white' }}>{t}</option>
                   ))}
                 </select>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-purple-200 flex items-center gap-2">
-                  <CalendarRange className="h-4 w-4" /> From
+              <div>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#8B5CF6', marginBottom: '8px' }}>
+                  <CalendarRange size={14} style={{ display: 'inline', marginRight: '5px' }} /> From
                 </label>
                 <input 
                   name="from"
                   type="date" 
                   defaultValue={data.from} 
-                  className="w-full rounded-xl bg-white/20 border border-white/30 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent backdrop-blur-sm transition-all duration-300"
+                  style={{ 
+                    width: '100%', 
+                    padding: '12px',
+                    borderRadius: '8px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    border: '1px solid #444',
+                    color: 'white'
+                  }}
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-purple-200">To</label>
+              <div>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#8B5CF6', marginBottom: '8px' }}>
+                  To
+                </label>
                 <input 
                   name="to"
                   type="date" 
                   defaultValue={data.to}
-                  className="w-full rounded-xl bg-white/20 border border-white/30 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent backdrop-blur-sm transition-all duration-300"
+                  style={{ 
+                    width: '100%', 
+                    padding: '12px',
+                    borderRadius: '8px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    border: '1px solid #444',
+                    color: 'white'
+                  }}
                 />
               </div>
-              <div className="flex gap-3">
-                <button className="flex-1 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 font-medium shadow-lg hover:shadow-purple-500/25 transition-all duration-300 hover:scale-105 transform">
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button style={{ 
+                  flex: '1', 
+                  padding: '12px 20px',
+                  borderRadius: '8px',
+                  background: 'linear-gradient(135deg, #8B5CF6, #7C3AED)',
+                  color: 'white',
+                  border: 'none',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 15px rgba(139, 92, 246, 0.3)',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(139, 92, 246, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 15px rgba(139, 92, 246, 0.3)';
+                }}
+                >
                   Apply Filters
                 </button>
                 <button 
                   type="button"
                   onClick={exportCSV}
-                  className="rounded-xl bg-white/20 border border-white/30 px-4 py-3 text-white hover:bg-white/30 transition-all duration-300 hover:scale-105 transform backdrop-blur-sm"
+                  style={{ 
+                    padding: '12px',
+                    borderRadius: '8px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    border: '1px solid #444',
+                    color: 'white',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
                 >
-                  <Download className="h-5 w-5" />
+                  <Download size={18} />
                 </button>
               </div>
             </Form>
@@ -297,344 +381,252 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <main className="relative z-10 mx-auto max-w-7xl px-6 py-8 space-y-8">
+      <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
         {/* KPIs */}
-        <section className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <KPI
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '30px' }}>
+          <KPICard
             title="Total Customers"
-            icon={<Users className="h-6 w-6" />}
+            icon={<Users size={20} />}
             value={data.totals.totalCustomers.toLocaleString()}
-            spark={spark.map((d) => ({ x: d.date, y: d.orders }))}
-            gradient="from-blue-500 to-cyan-500"
-            delay="0"
+            gradient="linear-gradient(135deg, #3B82F6, #1D4ED8)"
           />
-          <KPI
+          <KPICard
             title="Orders (Range)"
-            icon={<ShoppingCart className="h-6 w-6" />}
+            icon={<ShoppingCart size={20} />}
             value={data.totals.totalOrdersInRange.toLocaleString()}
             delta={ordTrend}
-            spark={spark.map((d) => ({ x: d.date, y: d.orders }))}
-            gradient="from-emerald-500 to-teal-500"
-            delay="100"
+            gradient="linear-gradient(135deg, #10B981, #059669)"
           />
-          <KPI
+          <KPICard
             title="Revenue (Range)"
-            icon={<DollarSign className="h-6 w-6" />}
+            icon={<DollarSign size={20} />}
             value={currency.format(data.totals.totalRevenueInRange)}
             delta={revTrend}
             positiveIsGood
-            spark={spark.map((d) => ({ x: d.date, y: d.revenue }))}
-            gradient="from-purple-500 to-pink-500"
-            delay="200"
+            gradient="linear-gradient(135deg, #8B5CF6, #7C3AED)"
           />
-          <KPI
+          <KPICard
             title="Avg Order Value"
-            icon={<TrendingUp className="h-6 w-6" />}
+            icon={<TrendingUp size={20} />}
             value={currency.format(data.totals.avgOrderValue)}
-            spark={spark.map((d) => ({ x: d.date, y: d.revenue }))}
-            gradient="from-orange-500 to-red-500"
-            delay="300"
+            gradient="linear-gradient(135deg, #F59E0B, #D97706)"
           />
-        </section>
+        </div>
 
         {/* Charts */}
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <Card title="Revenue & Orders Timeline" delay="400">
-              <div className="flex gap-2 mb-4">
-                {[
-                  { key: "area", label: "Area", icon: Activity },
-                  { key: "bar", label: "Bar", icon: BarChart3 },
-                  { key: "line", label: "Line", icon: TrendingUp }
-                ].map(({ key, label, icon: Icon }) => (
-                  <button
-                    key={key}
-                    onClick={() => setActiveChart(key)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-300 flex items-center gap-1 ${
-                      activeChart === key
-                        ? "bg-purple-500 text-white shadow-lg"
-                        : "bg-white/10 text-purple-200 hover:bg-white/20"
-                    }`}
-                  >
-                    <Icon className="h-3 w-3" />
-                    {label}
-                  </button>
-                ))}
-              </div>
-              {mounted && data.series.length ? (
-                <ResponsiveContainer width="100%" height={350}>
-                  {activeChart === "area" ? (
-                    <AreaChart data={data.series} margin={{ left: 20, right: 20, top: 20, bottom: 20 }}>
-                      <defs>
-                        <linearGradient id="revGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#8B5CF6" stopOpacity={0.8}/>
-                          <stop offset="100%" stopColor="#8B5CF6" stopOpacity={0.1}/>
-                        </linearGradient>
-                        <linearGradient id="orderGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#06D6A0" stopOpacity={0.8}/>
-                          <stop offset="100%" stopColor="#06D6A0" stopOpacity={0.1}/>
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
-                      <XAxis dataKey="date" stroke="#ffffff60" />
-                      <YAxis yAxisId="revenue" orientation="left" stroke="#8B5CF6" />
-                      <YAxis yAxisId="orders" orientation="right" stroke="#06D6A0" />
-                      <Tooltip 
-                        contentStyle={{ 
-                          background: 'rgba(15, 23, 42, 0.9)', 
-                          border: '1px solid rgba(255,255,255,0.2)',
-                          borderRadius: '12px',
-                          color: '#fff'
-                        }} 
-                      />
-                      <Legend />
-                      <Area yAxisId="revenue" type="monotone" dataKey="revenue" stroke="#8B5CF6" strokeWidth={3} fill="url(#revGradient)" />
-                      <Area yAxisId="orders" type="monotone" dataKey="orders" stroke="#06D6A0" strokeWidth={3} fill="url(#orderGradient)" />
-                    </AreaChart>
-                  ) : activeChart === "bar" ? (
-                    <BarChart data={data.series} margin={{ left: 20, right: 20, top: 20, bottom: 20 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
-                      <XAxis dataKey="date" stroke="#ffffff60" />
-                      <YAxis stroke="#ffffff60" />
-                      <Tooltip 
-                        contentStyle={{ 
-                          background: 'rgba(15, 23, 42, 0.9)', 
-                          border: '1px solid rgba(255,255,255,0.2)',
-                          borderRadius: '12px',
-                          color: '#fff'
-                        }} 
-                      />
-                      <Legend />
-                      <Bar dataKey="orders" fill="#06D6A0" radius={[4, 4, 0, 0]} />
-                      <Bar dataKey="revenue" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  ) : (
-                    <LineChart data={data.series} margin={{ left: 20, right: 20, top: 20, bottom: 20 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
-                      <XAxis dataKey="date" stroke="#ffffff60" />
-                      <YAxis stroke="#ffffff60" />
-                      <Tooltip 
-                        contentStyle={{ 
-                          background: 'rgba(15, 23, 42, 0.9)', 
-                          border: '1px solid rgba(255,255,255,0.2)',
-                          borderRadius: '12px',
-                          color: '#fff'
-                        }} 
-                      />
-                      <Legend />
-                      <Line type="monotone" dataKey="revenue" stroke="#8B5CF6" strokeWidth={3} dot={{ fill: '#8B5CF6', strokeWidth: 2, r: 4 }} />
-                      <Line type="monotone" dataKey="orders" stroke="#06D6A0" strokeWidth={3} dot={{ fill: '#06D6A0', strokeWidth: 2, r: 4 }} />
-                    </LineChart>
-                  )}
-                </ResponsiveContainer>
-              ) : <EmptyChart />}
-            </Card>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px', marginBottom: '30px' }}>
+          <div style={{ 
+            backgroundColor: '#111', 
+            borderRadius: '12px', 
+            border: '1px solid #222',
+            padding: '20px'
+          }}>
+            <h2 style={{ margin: '0 0 20px', fontSize: '18px', fontWeight: '600', color: 'white' }}>Revenue & Orders Timeline</h2>
+            {mounted && data.series.length ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <AreaChart data={data.series}>
+                  <defs>
+                    <linearGradient id="revGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#8B5CF6" stopOpacity={0.8}/>
+                      <stop offset="100%" stopColor="#8B5CF6" stopOpacity={0.1}/>
+                    </linearGradient>
+                    <linearGradient id="orderGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#06D6A0" stopOpacity={0.8}/>
+                      <stop offset="100%" stopColor="#06D6A0" stopOpacity={0.1}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                  <XAxis dataKey="date" stroke="#888" />
+                  <YAxis yAxisId="revenue" orientation="left" stroke="#8B5CF6" />
+                  <YAxis yAxisId="orders" orientation="right" stroke="#06D6A0" />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: '#222', 
+                      border: '1px solid #333',
+                      borderRadius: '8px',
+                      color: 'white'
+                    }} 
+                  />
+                  <Area yAxisId="revenue" type="monotone" dataKey="revenue" stroke="#8B5CF6" fill="url(#revGradient)" />
+                  <Area yAxisId="orders" type="monotone" dataKey="orders" stroke="#06D6A0" fill="url(#orderGradient)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : <EmptyChart />}
           </div>
+        </div>
 
-          <div>
-            <Card title="Top Customer Distribution" delay="500">
-              {mounted && pieData.length ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={pieData}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      innerRadius={40}
-                      paddingAngle={5}
-                      dataKey="value"
-                      animationBegin={0}
-                      animationDuration={1000}
-                    >
-                      {pieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      formatter={(value) => [currency.format(value), "Spend"]}
-                      contentStyle={{ 
-                        background: 'rgba(15, 23, 42, 0.9)', 
-                        border: '1px solid rgba(255,255,255,0.2)',
-                        borderRadius: '12px',
-                        color: '#fff'
-                      }} 
-                    />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : <EmptyChart />}
-            </Card>
-          </div>
-        </section>
-
-        <section>
-          <Card title="Top 5 Customers" delay="600">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+          {/* Top Customers */}
+          <div style={{ 
+            backgroundColor: '#111', 
+            borderRadius: '12px', 
+            border: '1px solid #222',
+            padding: '20px'
+          }}>
+            <h2 style={{ margin: '0 0 20px', fontSize: '18px', fontWeight: '600', color: 'white' }}>Top 5 Customers</h2>
             {mounted && data.top.length ? (
-              <div className="space-y-4">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                 {data.top.map((customer, index) => (
                   <div
                     key={customer.customer_id}
-                    className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300 transform hover:scale-105"
-                    style={{ animationDelay: `${index * 100}ms` }}
+                    style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'space-between',
+                      padding: '15px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      borderRadius: '8px',
+                      border: '1px solid #333'
+                    }}
                   >
-                    <div className="flex items-center gap-4">
-                      <div className={`h-10 w-10 rounded-full bg-gradient-to-br ${
-                        index === 0 ? "from-yellow-400 to-yellow-600" :
-                        index === 1 ? "from-gray-300 to-gray-500" :
-                        index === 2 ? "from-orange-400 to-orange-600" :
-                        "from-purple-400 to-purple-600"
-                      } flex items-center justify-center shadow-lg`}>
-                        {index < 3 ? (
-                          <Star className="h-5 w-5 text-white" />
-                        ) : (
-                          <span className="text-white font-bold">{index + 1}</span>
-                        )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ 
+                        height: '40px', 
+                        width: '40px', 
+                        borderRadius: '8px', 
+                        backgroundColor: index === 0 ? '#F59E0B' : index === 1 ? '#9CA3AF' : index === 2 ? '#F97316' : '#8B5CF6',
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center',
+                        fontWeight: 'bold',
+                        color: 'white'
+                      }}>
+                        {index < 3 ? <Star size={16} /> : index + 1}
                       </div>
                       <div>
-                        <div className="font-medium text-white">{customer.name || "Unknown"}</div>
-                        <div className="text-sm text-purple-200">{customer.email}</div>
+                        <div style={{ fontWeight: '500', color: 'white' }}>{customer.name || "Unknown"}</div>
+                        <div style={{ fontSize: '14px', color: '#8B5CF6' }}>{customer.email}</div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="font-bold text-lg text-emerald-400">{currency.format(customer.spend)}</div>
-                      <div className="text-xs text-purple-200">Total Spend</div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontWeight: 'bold', color: '#06D6A0' }}>{currency.format(customer.spend)}</div>
+                      <div style={{ fontSize: '12px', color: '#888' }}>Total Spend</div>
                     </div>
                   </div>
                 ))}
               </div>
             ) : <EmptyChart note="No customers in this range" />}
-          </Card>
-        </section>
-      </main>
+          </div>
 
-      <style jsx>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-20px) rotate(180deg); }
-        }
-        .animate-float {
-          animation: float 6s ease-in-out infinite;
-        }
-        @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-slideUp {
-          animation: slideUp 0.6s ease-out forwards;
-          opacity: 0;
-        }
-      `}</style>
+          {/* Customer Distribution */}
+          <div style={{ 
+            backgroundColor: '#111', 
+            borderRadius: '12px', 
+            border: '1px solid #222',
+            padding: '20px'
+          }}>
+            <h2 style={{ margin: '0 0 20px', fontSize: '18px', fontWeight: '600', color: 'white' }}>Top Customer Distribution</h2>
+            {mounted && data.top.length ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={data.top.slice(0, 3).map((customer, index) => ({
+                      name: customer.name || customer.email || "Unknown",
+                      value: customer.spend
+                    }))}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    innerRadius={40}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {data.top.slice(0, 3).map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    formatter={(value) => [currency.format(Number(value)), "Spend"]}
+                    contentStyle={{ 
+                      backgroundColor: '#222', 
+                      border: '1px solid #333',
+                      borderRadius: '8px',
+                      color: 'white'
+                    }} 
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : <EmptyChart />}
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
 
-/* ------------------------------ UI subcomponents ------------------------------ */
+/* ------------------------------ UI Components ------------------------------ */
 
-function KPI({
-  title,
-  value,
-  icon,
-  delta,
-  positiveIsGood,
-  spark,
-  gradient,
-  delay,
-}: {
-  title: string;
-  value: string;
-  icon: React.ReactNode;
-  delta?: number;
-  positiveIsGood?: boolean;
-  spark?: { x: string; y: number }[];
-  gradient: string;
-  delay: string;
-}) {
+function KPICard({ title, value, icon, delta, positiveIsGood, gradient }: any) {
   const sign = delta === undefined ? undefined : delta >= 0 ? "+" : "";
   const color = delta === undefined 
-    ? "text-purple-200" 
+    ? "#8B5CF6" 
     : delta >= 0 
-      ? positiveIsGood ? "text-emerald-400" : "text-yellow-400"
-      : "text-red-400";
+      ? positiveIsGood ? "#06D6A0" : "#F59E0B"
+      : "#EF4444";
 
   return (
-    <div 
-      className="group relative overflow-hidden rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 p-6 shadow-2xl hover:shadow-purple-500/20 transition-all duration-500 hover:scale-105 transform animate-slideUp"
-      style={{ animationDelay: `${delay}ms` }}
-    >
-      <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-10 group-hover:opacity-20 transition-opacity duration-500`}></div>
+    <div style={{ 
+      backgroundColor: '#111', 
+      borderRadius: '12px', 
+      border: '1px solid #222',
+      padding: '20px',
+      position: 'relative',
+      overflow: 'hidden'
+    }}>
+      <div style={{ 
+        position: 'absolute', 
+        top: '0', 
+        right: '0', 
+        bottom: '0', 
+        left: '0',
+        background: gradient,
+        opacity: '0.1'
+      }}></div>
       
-      <div className="relative flex items-start justify-between">
-        <div className="flex-1">
-          <div className="text-sm text-purple-200 mb-2 font-medium">{title}</div>
-          <div className="text-3xl font-bold text-white mb-2">{value}</div>
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+        <div style={{ flex: '1' }}>
+          <div style={{ fontSize: '14px', color: '#8B5CF6', marginBottom: '8px', fontWeight: '500' }}>{title}</div>
+          <div style={{ fontSize: '24px', fontWeight: 'bold', color: 'white', marginBottom: '8px' }}>{value}</div>
           {delta !== undefined && (
-            <div className={`text-sm flex items-center gap-1 ${color}`}>
-              {delta >= 0 ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
+            <div style={{ fontSize: '14px', color, display: 'flex', alignItems: 'center', gap: '4px' }}>
+              {delta >= 0 ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
               {sign}{Math.abs(delta).toFixed(1)}%
             </div>
           )}
         </div>
-        <div className={`h-14 w-14 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+        <div style={{ 
+          height: '50px', 
+          width: '50px', 
+          borderRadius: '10px', 
+          background: gradient,
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          color: 'white'
+        }}>
           {icon}
         </div>
       </div>
-      
-      {spark && spark.length > 1 && (
-        <div className="mt-4 h-16 opacity-80">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={spark}>
-              <Line 
-                type="monotone" 
-                dataKey="y" 
-                stroke="#ffffff" 
-                strokeWidth={2} 
-                dot={false} 
-                strokeOpacity={0.8}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function Card({ title, children, delay = "0" }: { title: string; children: React.ReactNode; delay?: string }) {
-  return (
-    <div 
-      className="rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 p-6 shadow-2xl hover:shadow-purple-500/10 transition-all duration-500 animate-slideUp"
-      style={{ animationDelay: `${delay}ms` }}
-    >
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="font-bold text-xl text-white">{title}</h3>
-      </div>
-      {children}
     </div>
   );
 }
 
 function EmptyChart({ note = "No data available" }: { note?: string }) {
   return (
-    <div className="flex flex-col items-center justify-center h-64 text-center">
-      <div className="rounded-full bg-white/10 p-6 mb-4">
-        <AlertCircle className="h-12 w-12 text-purple-300" />
-      </div>
-      <h3 className="text-lg font-medium text-white mb-2">No Data Available</h3>
-      <p className="text-purple-200 text-sm max-w-xs">
+    <div style={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      height: '200px',
+      textAlign: 'center',
+      color: '#888'
+    }}>
+      <AlertCircle size={40} style={{ marginBottom: '15px', color: '#8B5CF6' }} />
+      <h3 style={{ margin: '0 0 8px', fontSize: '16px', fontWeight: '500', color: 'white' }}>No Data Available</h3>
+      <p style={{ margin: '0', fontSize: '14px', maxWidth: '200px' }}>
         {note}. Try adjusting your date range or selecting a different store.
       </p>
-      <div className="mt-4 flex gap-2">
-        <div className="h-2 w-2 bg-purple-400 rounded-full animate-pulse"></div>
-        <div className="h-2 w-2 bg-purple-400 rounded-full animate-pulse delay-100"></div>
-        <div className="h-2 w-2 bg-purple-400 rounded-full animate-pulse delay-200"></div>
-      </div>
     </div>
   );
 }
