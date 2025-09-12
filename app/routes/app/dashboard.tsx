@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLoaderData } from '@remix-run/react';
-import prisma from '../db.server';
+import prisma from '../../db.server';
 
 // Mock data for now
 const mockData = {
