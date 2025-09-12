@@ -25,6 +25,7 @@ export default function App() {
           Home
         </Link>
         <Link to="/app/additional">Additional page</Link>
+        <Link to="/dashboard" className="text-white">📊 Dashboard</Link>
       </NavMenu>
       <Outlet />
     </AppProvider>
