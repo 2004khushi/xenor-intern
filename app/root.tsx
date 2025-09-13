@@ -9,7 +9,7 @@ import {
   ScrollRestoration,
 } from "@remix-run/react";
 
-import stylesheet from "~/styles/dashboard.css";
+import stylesheet from "/app/styles/dashboard.css";
 
 // 1. Add the type for the links function
 export const links: LinksFunction = () => [
