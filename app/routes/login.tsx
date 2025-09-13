@@ -1,60 +1,33 @@
-// app/routes/login.tsx
-import { json, redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node";
-import { Form, useActionData } from "@remix-run/react";
-import { issueMagicLink } from "../utils/auth.server";
-import { getUserEmail } from "../utils/session.server";
-
-export async function loader({ request }: LoaderFunctionArgs) {
-  const email = await getUserEmail(request);
-  if (email) return redirect("/dashboard");
-  return json({ ok: true });
-}
+import { Form, useActionData, useNavigation } from "@remix-run/react";
+import type { ActionFunctionArgs } from "@remix-run/node";
+import { json } from "@remix-run/node";
+import { sendMagicLink } from "app/utils/auth.server";
 
 export async function action({ request }: ActionFunctionArgs) {
   const form = await request.formData();
-  const email = String(form.get("email") || "").trim().toLowerCase();
-  if (!email || !email.includes("@")) {
-    return json({ error: "Enter a valid email" }, { status: 400 });
+  const email = String(form.get("email") || "");
+  try {
+    await sendMagicLink(email);
+    return json({ ok: true, msg: "Magic link sent. Check your email." });
+  } catch (e: any) {
+    return json({ ok: false, msg: e.message ?? "Failed to send link" }, { status: 400 });
   }
-
-  const origin = new URL(request.url).origin;
-  await issueMagicLink(email, origin);
-
-  return json({ success: true });
 }
 
-export default function LoginPage() {
-  const data = useActionData<typeof action>();
-  
+export default function Login() {
+  const res = useActionData<typeof action>();
+  const nav = useNavigation();
   return (
-    <div className="mx-auto max-w-md p-6">
-      <h1 className="text-2xl font-semibold mb-4">Sign in</h1>
-      <Form method="post" className="space-y-3">
-        <input
-          name="email"
-          type="email"
-          placeholder="you@example.com"
-          className="w-full border rounded px-3 py-2"
-          required
-        />
-        <button
-          type="submit"
-          className="w-full rounded bg-black text-white py-2"
-        >
-          Send magic link
+    <div style={{ maxWidth: 380, margin: "3rem auto" }}>
+      <h1 style={{ fontSize: 24, fontWeight: 600 }}>Sign in</h1>
+      <Form method="post" style={{ display: "grid", gap: 12, marginTop: 12 }}>
+        <input type="email" name="email" required placeholder="you@example.com" />
+        <button type="submit" disabled={nav.state !== "idle"}>
+          {nav.state === "submitting" ? "Sending…" : "Send magic link"}
         </button>
       </Form>
-      
-      {/* FIXED: Check if data exists first */}
-      {data && 'success' in data && data.success && (
-        <p className="mt-3 text-green-700">
-          Check your email for the sign-in link (or see server logs in dev).
-        </p>
-      )}
-      
-      {/* FIXED: Check if data exists first */}
-      {data && 'error' in data && (
-        <p className="mt-3 text-red-700">{data.error}</p>
+      {res?.msg && (
+        <p style={{ color: res.ok ? "green" : "crimson", marginTop: 8 }}>{res.msg}</p>
       )}
     </div>
   );

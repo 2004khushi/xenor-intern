@@ -11,50 +11,35 @@ datasource db {
 }
 
 model Session {
-  id            String    @id
-  shop          String
-  state         String
-  isOnline      Boolean   @default(false)
-  scope         String?
-  expires       DateTime?
-  accessToken   String
-  userId        BigInt?
-  firstName     String?
-  lastName      String?
-  email         String?
-  accountOwner  Boolean   @default(false)
-  locale        String?
-  collaborator  Boolean?  @default(false)
-  emailVerified Boolean?  @default(false)
+  id        String   @id @default(cuid())
+  userId    String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
+  id        String     @id @default(cuid())
   email     String   @unique
   createdAt DateTime @default(now())
+  sessions  Session[]
 }
+
+
 
 model MagicLinkToken {
-  id        Int       @id @default(autoincrement())
-  email     String
-  token     String    @unique
-  expiresAt DateTime
-  usedAt    DateTime?
-  createdAt DateTime  @default(now())
-}
-
-model Store {
   id         String   @id @default(cuid())
-  name       String
-  domain     String   @unique
-  created_at DateTime @default(now())
+  email      String
+  tokenHash  String   @unique
+  expiresAt  DateTime
+  consumedAt DateTime?
+  attempts   Int      @default(0)
+  createdAt  DateTime @default(now())
 
-  // Relationships
-  products  Product[]
-  customers Customer[]
-  orders    Order[]
-
-  @@map("stores")
+  @@index([email])
+  @@index([expiresAt])
 }
 
 model Product {
@@ -65,8 +50,6 @@ model Product {
   price      Float?
   created_at DateTime @default(now())
 
-  // Add relationship back - REQUIRED
-  store Store @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
 
   @@unique([tenant_id, shopify_id], name: "uniq_products_tenant_shopify")
   @@index([tenant_id], map: "idx_products_tenant")
@@ -82,9 +65,7 @@ model Customer {
   last_name  String?
   created_at DateTime @default(now())
 
-  // Add relationship
-  store Store @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
-
+  
   @@unique([tenant_id, shopify_id], name: "uniq_customers_tenant_shopify")
   @@index([tenant_id], map: "idx_customers_tenant")
   @@map("customers")
@@ -99,8 +80,7 @@ model Order {
   financial_status String?
   created_at       DateTime @default(now())
 
-  // Add relationship
-  store Store @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  
 
   @@unique([tenant_id, shopify_id], name: "uniq_orders_tenant_shopify")
   @@index([tenant_id], map: "idx_orders_tenant")
