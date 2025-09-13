@@ -1,6 +1,5 @@
 // app/root.tsx
-import type { LinksFunction } from "@remix-run/node"; // <-- IMPORT THIS
-import { cssBundleHref } from "@remix-run/css-bundle"; // <-- IMPORT THIS
+import type { LinksFunction } from "@remix-run/node";
 import {
   Links,
   Meta,
@@ -9,13 +8,11 @@ import {
   ScrollRestoration,
 } from "@remix-run/react";
 
-import stylesheet from "/app/styles/dashboard.css";
+// Use the correct relative path with ~ alias
+import stylesheet from "~/styles/dashboard.css";
 
-// 1. Add the type for the links function
 export const links: LinksFunction = () => [
-  // 2. Include the CSS bundle if it exists (for other styles)
-  ...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
-  // 3. Link your custom dashboard styles
+  // Remove the cssBundleHref line since the package isn't installed
   { rel: "stylesheet", href: stylesheet },
 ];
 
