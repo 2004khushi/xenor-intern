@@ -1,8 +1,8 @@
 import type { LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Form, Link, useLoaderData, useSearchParams } from "@remix-run/react";
-import prisma from "../db.server";
-import { requireUserEmail } from "../utils/session.server";
+import prisma from "./app/db.server";
+import { requireUserEmail } from "./app/utils/session.server";
 import { useEffect, useMemo, useState } from "react";
 import {
   ResponsiveContainer,
