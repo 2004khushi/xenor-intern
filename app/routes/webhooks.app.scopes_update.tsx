@@ -1,6 +1,7 @@
 import type { ActionFunctionArgs } from "@remix-run/node";
 import { authenticate } from "../shopify.server";
-import db from "../db.server";
+// Change 'db' to 'prisma' to match the named export in db.server.ts
+import { prisma } from "../db.server";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
     const { payload, session, topic, shop } = await authenticate.webhook(request);
@@ -8,7 +9,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
     const current = payload.current as string[];
     if (session) {
-        await db.session.update({   
+        // Use 'prisma' instead of 'db' here as well
+        await prisma.session.update({   
             where: {
                 id: session.id
             },
