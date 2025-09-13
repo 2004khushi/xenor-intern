@@ -25,6 +25,7 @@
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",
     "@prisma/client": "^6.2.1",
+    "@remix-run/css-bundle": "^2.17.0",
     "@remix-run/dev": "^2.16.1",
     "@remix-run/fs-routes": "^2.16.1",
     "@remix-run/node": "^2.16.1",
