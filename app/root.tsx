@@ -8,11 +8,8 @@ import {
   ScrollRestoration,
 } from "@remix-run/react";
 
-import stylesheet from "./styles/dashboard.css";
-
 export const links: LinksFunction = () => [
-  // Remove the cssBundleHref line since the package isn't installed
-  { rel: "stylesheet", href: stylesheet },
+  { rel: "stylesheet", href: "/styles/dashboard.css" },
 ];
 
 export default function App() {
