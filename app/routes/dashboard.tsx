@@ -1,6 +1,6 @@
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { Form, Link, useLoaderData, useSearchParams } from "@remix-run/react";
+import { Form, useLoaderData, useSearchParams } from "@remix-run/react";
 import {
   ResponsiveContainer,
   AreaChart, Area,
@@ -12,58 +12,14 @@ import {
   Download, CalendarRange, LogOut,
   BarChart3, Activity, Database, ArrowUp, ArrowDown
 } from "lucide-react";
-
-// NOTE: This mock authentication logic is for the demo.
-// In a real app, you would use a secure method to verify the user's session.
-const requireAuth = (request: Request) => {
-  const cookie = request.headers.get("Cookie");
-  if (!cookie || !cookie.includes("auth-token")) {
-    throw redirect("/login");
-  }
-  return { email: "user@example.com" }; // Mock user data
-};
-
-// NOTE: This mock data generation replaces your Prisma queries.
-// It generates random data based on the date range.
-const mockGetBusinessData = async (from: Date, to: Date) => {
-  const days = Math.floor((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24));
-  
-  const series = Array.from({ length: days }, (_, i) => {
-    const date = new Date(from);
-    date.setDate(date.getDate() + i);
-    return {
-      date: date.toISOString().split('T')[0],
-      orders: Math.floor(Math.random() * 50) + 10,
-      revenue: Math.floor(Math.random() * 5000) + 1000,
-    };
-  });
-
-  const topCustomers = [
-    { id: "1", name: "John Doe", email: "john@example.com", spend: 12500 },
-    { id: "2", name: "Jane Smith", email: "jane@example.com", spend: 9800 },
-    { id: "3", name: "Bob Johnson", email: "bob@example.com", spend: 7450 },
-    { id: "4", name: "Alice Brown", email: "alice@example.com", spend: 6200 },
-    { id: "5", name: "Charlie Wilson", email: "charlie@example.com", spend: 5300 },
-  ];
-
-  const totalOrders = series.reduce((sum, day) => sum + day.orders, 0);
-  const totalRevenue = series.reduce((sum, day) => sum + day.revenue, 0);
-  const avgOrderValue = totalRevenue / Math.max(totalOrders, 1);
-
-  return { 
-    series, 
-    topCustomers, 
-    totals: {
-      totalCustomers: 247,
-      totalOrders,
-      totalRevenue,
-      avgOrderValue,
-    }
-  };
-};
+import { getUserEmail, logout } from "../utils/session.server";
+import { getBusinessData } from "../utils/data.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  requireAuth(request);
+  const email = await getUserEmail(request);
+  if (!email) {
+    throw redirect("/login");
+  }
 
   const url = new URL(request.url);
   const fromParam = url.searchParams.get("from");
@@ -73,14 +29,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const thirtyDaysAgo = new Date(today);
   thirtyDaysAgo.setDate(today.getDate() - 30);
 
-  // Corrected logic: if params exist, use them; otherwise, use the default range.
   const from = fromParam ? new Date(fromParam) : thirtyDaysAgo;
   const to = toParam ? new Date(toParam) : today;
 
-  const { series, topCustomers, totals } = await mockGetBusinessData(from, to);
+  const { series, topCustomers, totals } = await getBusinessData(from, to);
 
   return json({
-    user: { email: "user@example.com" }, // Mock user data
+    user: { email },
     from: from.toISOString().split('T')[0],
     to: to.toISOString().split('T')[0],
     series,
@@ -90,24 +45,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const formData = await request.formData();
-  const intent = formData.get("intent");
-
-  if (intent === "logout") {
-    return redirect("/login", {
-      headers: {
-        "Set-Cookie": "auth-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
-      },
-    });
-  }
-
-  return null;
+  return logout(request);
 }
 
 export default function Dashboard() {
   const data = useLoaderData<typeof loader>();
-  // NOTE: We no longer need the useState for dateRange.
-  // The useSearchParams hook is enough to get the current URL parameters.
   const [searchParams] = useSearchParams();
 
   const currency = new Intl.NumberFormat('en-US', {
@@ -195,9 +137,7 @@ export default function Dashboard() {
             </div>
             <Form method="post">
               <button 
-                type="submit" 
-                name="intent" 
-                value="logout"
+                type="submit"
                 style={{ 
                   display: 'flex', 
                   alignItems: 'center',
@@ -225,77 +165,79 @@ export default function Dashboard() {
             padding: '20px',
             backdropFilter: 'blur(10px)'
           }}>
-            <Form method="get" action="/dashboard" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', alignItems: 'end' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#ffdd00', marginBottom: '8px' }}>
-                  <CalendarRange size={14} style={{ display: 'inline', marginRight: '5px' }} /> From
-                </label>
-                <input 
-                  name="from"
-                  type="date" 
-                  defaultValue={searchParams.get('from') || data.from}
-                  style={{ 
-                    width: '100%', 
-                    padding: '12px',
-                    borderRadius: '8px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                    border: '1px solid #444',
-                    color: 'white'
-                  }}
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#ffdd00', marginBottom: '8px' }}>
-                  To
-                </label>
-                <input 
-                  name="to"
-                  type="date" 
-                  defaultValue={searchParams.get('to') || data.to}
-                  style={{ 
-                    width: '100%', 
-                    padding: '12px',
-                    borderRadius: '8px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                    border: '1px solid #444',
-                    color: 'white'
-                  }}
-                />
-              </div>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button 
-                  type="submit"
-                  style={{ 
-                    flex: '1', 
-                    padding: '12px 20px',
-                    borderRadius: '8px',
-                    background: 'linear-gradient(135deg, #ffdd00, #ffaa00)',
-                    color: 'black',
-                    border: 'none',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 15px rgba(255, 221, 0, 0.3)',
-                  }}
-                >
-                  Apply Filters
-                </button>
-                <button 
-                  type="button"
-                  onClick={exportData}
-                  style={{ 
-                    padding: '12px',
-                    borderRadius: '8px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                    border: '1px solid #444',
-                    color: '#ffdd00',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
-                >
-                  <Download size={18} />
-                </button>
+            <Form method="get" className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                <div>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#ffdd00', marginBottom: '8px' }}>
+                    <CalendarRange size={14} style={{ display: 'inline', marginRight: '5px' }} /> From
+                  </label>
+                  <input 
+                    name="from"
+                    type="date" 
+                    defaultValue={searchParams.get('from') || data.from}
+                    style={{ 
+                      width: '100%', 
+                      padding: '12px',
+                      borderRadius: '8px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                      border: '1px solid #444',
+                      color: 'white'
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#ffdd00', marginBottom: '8px' }}>
+                    To
+                  </label>
+                  <input 
+                    name="to"
+                    type="date" 
+                    defaultValue={searchParams.get('to') || data.to}
+                    style={{ 
+                      width: '100%', 
+                      padding: '12px',
+                      borderRadius: '8px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                      border: '1px solid #444',
+                      color: 'white'
+                    }}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <button 
+                    type="submit"
+                    style={{ 
+                      flex: '1', 
+                      padding: '12px 20px',
+                      borderRadius: '8px',
+                      background: 'linear-gradient(135deg, #ffdd00, #ffaa00)',
+                      color: 'black',
+                      border: 'none',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      boxShadow: '0 4px 15px rgba(255, 221, 0, 0.3)',
+                    }}
+                  >
+                    Apply Filters
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={exportData}
+                    style={{ 
+                      padding: '12px',
+                      borderRadius: '8px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                      border: '1px solid #444',
+                      color: '#ffdd00',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    <Download size={18} />
+                  </button>
+                </div>
               </div>
             </Form>
           </div>

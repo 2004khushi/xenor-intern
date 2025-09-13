@@ -10,7 +10,8 @@ export async function issueMagicLink(email: string, origin?: string) {
     data: { email: email.toLowerCase(), token, expiresAt },
   });
 
-  await sendMagicLink(email, token, origin); // <- pass origin
+  // This already logs to console! Check Vercel logs!
+  await sendMagicLink(email, token, origin);
 }
 
 export async function consumeMagicLink(email: string, token: string) {
