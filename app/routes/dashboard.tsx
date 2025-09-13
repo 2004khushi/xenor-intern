@@ -1,25 +1,21 @@
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import { Form, Link, useLoaderData, useSearchParams } from "@remix-run/react";
-import { useState, useEffect } from "react";
 import {
   ResponsiveContainer,
-  LineChart, Line,
-  CartesianGrid, XAxis, YAxis, Tooltip, Legend,
   AreaChart, Area,
-  BarChart, Bar,
+  CartesianGrid, XAxis, YAxis, Tooltip,
   PieChart, Pie, Cell,
 } from "recharts";
 import {
   Users, ShoppingCart, DollarSign, TrendingUp,
-  Download, CalendarRange, Store, LogOut,
-  ArrowUp, ArrowDown, AlertCircle,
-  BarChart3, Activity, Eye, Database
+  Download, CalendarRange, LogOut,
+  BarChart3, Activity, Database, ArrowUp, ArrowDown
 } from "lucide-react";
 
-// Mock authentication - replace with your actual auth system
+// NOTE: This mock authentication logic is for the demo.
+// In a real app, you would use a secure method to verify the user's session.
 const requireAuth = (request: Request) => {
-  // In a real app, you would verify the user's session or token
   const cookie = request.headers.get("Cookie");
   if (!cookie || !cookie.includes("auth-token")) {
     throw redirect("/login");
@@ -27,9 +23,9 @@ const requireAuth = (request: Request) => {
   return { email: "user@example.com" }; // Mock user data
 };
 
-// Mock data functions - replace with your actual data source
+// NOTE: This mock data generation replaces your Prisma queries.
+// It generates random data based on the date range.
 const mockGetBusinessData = async (from: Date, to: Date) => {
-  // Generate mock data
   const days = Math.floor((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24));
   
   const series = Array.from({ length: days }, (_, i) => {
@@ -50,36 +46,41 @@ const mockGetBusinessData = async (from: Date, to: Date) => {
     { id: "5", name: "Charlie Wilson", email: "charlie@example.com", spend: 5300 },
   ];
 
-  const totals = {
-    totalCustomers: 247,
-    totalOrders: series.reduce((sum, day) => sum + day.orders, 0),
-    totalRevenue: series.reduce((sum, day) => sum + day.revenue, 0),
-    avgOrderValue: 0, // Will calculate below
+  const totalOrders = series.reduce((sum, day) => sum + day.orders, 0);
+  const totalRevenue = series.reduce((sum, day) => sum + day.revenue, 0);
+  const avgOrderValue = totalRevenue / Math.max(totalOrders, 1);
+
+  return { 
+    series, 
+    topCustomers, 
+    totals: {
+      totalCustomers: 247,
+      totalOrders,
+      totalRevenue,
+      avgOrderValue,
+    }
   };
-
-  totals.avgOrderValue = totals.totalRevenue / Math.max(totals.totalOrders, 1);
-
-  return { series, topCustomers, totals };
 };
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  // Require authentication
-  const user = requireAuth(request);
+  requireAuth(request);
 
   const url = new URL(request.url);
   const fromParam = url.searchParams.get("from");
   const toParam = url.searchParams.get("to");
 
-  // Set date range (default to last 30 days)
-  const to = toParam ? new Date(toParam) : new Date();
-  const from = fromParam ? new Date(fromParam) : new Date();
-  from.setDate(from.getDate() - 30);
+  const today = new Date();
+  const thirtyDaysAgo = new Date(today);
+  thirtyDaysAgo.setDate(today.getDate() - 30);
 
-  // Get data
+  // Corrected logic: if params exist, use them; otherwise, use the default range.
+  const from = fromParam ? new Date(fromParam) : thirtyDaysAgo;
+  const to = toParam ? new Date(toParam) : today;
+
   const { series, topCustomers, totals } = await mockGetBusinessData(from, to);
 
   return json({
-    user,
+    user: { email: "user@example.com" }, // Mock user data
     from: from.toISOString().split('T')[0],
     to: to.toISOString().split('T')[0],
     series,
@@ -89,12 +90,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  // Handle form submissions (logout, etc.)
   const formData = await request.formData();
   const intent = formData.get("intent");
 
   if (intent === "logout") {
-    // Clear auth cookie and redirect to login
     return redirect("/login", {
       headers: {
         "Set-Cookie": "auth-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
@@ -107,18 +106,15 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function Dashboard() {
   const data = useLoaderData<typeof loader>();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [dateRange, setDateRange] = useState({
-    from: data.from,
-    to: data.to,
-  });
+  // NOTE: We no longer need the useState for dateRange.
+  // The useSearchParams hook is enough to get the current URL parameters.
+  const [searchParams] = useSearchParams();
 
   const currency = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
   });
 
-  // Calculate trends
   const calculateTrend = (data: any[], key: string) => {
     if (data.length < 2) return 0;
     
@@ -128,23 +124,13 @@ export default function Dashboard() {
     const firstAvg = firstHalf.reduce((sum, item) => sum + item[key], 0) / firstHalf.length;
     const secondAvg = secondHalf.reduce((sum, item) => sum + item[key], 0) / secondHalf.length;
     
+    if (firstAvg === 0) return secondAvg > 0 ? 100 : 0;
+    
     return ((secondAvg - firstAvg) / firstAvg) * 100;
   };
 
   const revenueTrend = calculateTrend(data.series, 'revenue');
   const ordersTrend = calculateTrend(data.series, 'orders');
-
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setDateRange(prev => ({ ...prev, [name]: value }));
-  };
-
-  const applyDateFilter = () => {
-    const newParams = new URLSearchParams(searchParams);
-    newParams.set('from', dateRange.from);
-    newParams.set('to', dateRange.to);
-    setSearchParams(newParams);
-  };
 
   const exportData = () => {
     const csvContent = [
@@ -160,7 +146,7 @@ export default function Dashboard() {
     a.click();
     URL.revokeObjectURL(url);
   };
-
+  
   const chartColors = ['#ffdd00', '#ffaa00', '#ffcc00', '#ff6b00', '#ff9900'];
 
   return (
@@ -239,7 +225,7 @@ export default function Dashboard() {
             padding: '20px',
             backdropFilter: 'blur(10px)'
           }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', alignItems: 'end' }}>
+            <Form method="get" action="/dashboard" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', alignItems: 'end' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#ffdd00', marginBottom: '8px' }}>
                   <CalendarRange size={14} style={{ display: 'inline', marginRight: '5px' }} /> From
@@ -247,8 +233,7 @@ export default function Dashboard() {
                 <input 
                   name="from"
                   type="date" 
-                  value={dateRange.from}
-                  onChange={handleDateChange}
+                  defaultValue={searchParams.get('from') || data.from}
                   style={{ 
                     width: '100%', 
                     padding: '12px',
@@ -266,8 +251,7 @@ export default function Dashboard() {
                 <input 
                   name="to"
                   type="date" 
-                  value={dateRange.to}
-                  onChange={handleDateChange}
+                  defaultValue={searchParams.get('to') || data.to}
                   style={{ 
                     width: '100%', 
                     padding: '12px',
@@ -280,8 +264,7 @@ export default function Dashboard() {
               </div>
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button 
-                  type="button"
-                  onClick={applyDateFilter}
+                  type="submit"
                   style={{ 
                     flex: '1', 
                     padding: '12px 20px',
@@ -314,7 +297,7 @@ export default function Dashboard() {
                   <Download size={18} />
                 </button>
               </div>
-            </div>
+            </Form>
           </div>
         </div>
       </header>
@@ -611,7 +594,7 @@ export default function Dashboard() {
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={data.topCustomers.map((customer, index) => ({
+                  data={data.topCustomers.map((customer) => ({
                     name: customer.name,
                     value: customer.spend
                   }))}
