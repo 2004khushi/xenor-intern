@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import prisma from "../db.server";
+import {prisma} from "../db.server";
 import { sendMagicLink } from "./mailer.server";
 
 export async function issueMagicLink(email: string, origin?: string) {
