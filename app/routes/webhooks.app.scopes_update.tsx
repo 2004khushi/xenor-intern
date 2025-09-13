@@ -1,6 +1,5 @@
 import type { ActionFunctionArgs } from "@remix-run/node";
 import { authenticate } from "../shopify.server";
-// Change 'db' to 'prisma' to match the named export in db.server.ts
 import { prisma } from "../db.server";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
