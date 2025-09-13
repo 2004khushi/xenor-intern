@@ -20,40 +20,39 @@ import { getTenantId } from "../utils/tenant.server";
 
 
 
+// In your dashboard.tsx, replace the loader with this:
 export async function loader({ request }: LoaderFunctionArgs) {
-  try {
-    // Get tenant ID from cookie
-    const tenantId = getTenantId(request);
-    
-    const url = new URL(request.url);
-    const fromParam = url.searchParams.get("from");
-    const toParam = url.searchParams.get("to");
-
-    const today = new Date();
-    const thirtyDaysAgo = new Date(today);
-    thirtyDaysAgo.setDate(today.getDate() - 30);
-
-    const from = fromParam ? new Date(fromParam) : thirtyDaysAgo;
-    const to = toParam ? new Date(toParam) : today;
-
-    // Pass tenantId to getBusinessData
-    const { series, topCustomers, totals } = await getBusinessData(from, to, tenantId);
-
-    return json({
-      tenantId, // Optional: include if you want to display it
-      from: from.toISOString().split('T')[0],
-      to: to.toISOString().split('T')[0],
-      series,
-      topCustomers,
-      totals,
-    });
-  } catch (error) {
-    // If no tenant ID, redirect to store selection
-    if (error instanceof Error && error.message.includes("Tenant ID not found")) {
-      return redirect("/login");
-    }
-    throw error;
+  // FIRST check if user is authenticated
+  const email = await getUserEmail(request);
+  if (!email) {
+    throw redirect("/login");
   }
+
+  // THEN get tenant ID and business data
+  const tenantId = getTenantId(request);
+  
+  const url = new URL(request.url);
+  const fromParam = url.searchParams.get("from");
+  const toParam = url.searchParams.get("to");
+
+  const today = new Date();
+  const thirtyDaysAgo = new Date(today);
+  thirtyDaysAgo.setDate(today.getDate() - 30);
+
+  const from = fromParam ? new Date(fromParam) : thirtyDaysAgo;
+  const to = toParam ? new Date(toParam) : today;
+
+  const { series, topCustomers, totals } = await getBusinessData(from, to, tenantId);
+
+  return json({
+    email, // Include user email if you want to display it
+    tenantId,
+    from: from.toISOString().split('T')[0],
+    to: to.toISOString().split('T')[0],
+    series,
+    topCustomers,
+    totals,
+  });
 }
 
 export async function action({ request }: ActionFunctionArgs) {
