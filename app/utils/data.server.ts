@@ -37,7 +37,7 @@ interface CustomerResult {
   spend: number | null;
 }
 
-export async function getBusinessData(from: Date, to: Date): Promise<BusinessData> {
+export async function getBusinessData(from: Date, to: Date, tenantId: string): Promise<BusinessData> {
   try {
     // Get date range for queries
     const fromDate = new Date(from);
@@ -46,19 +46,21 @@ export async function getBusinessData(from: Date, to: Date): Promise<BusinessDat
 
     // Execute all queries in parallel with proper typing
     const [seriesData, topCustomers, totalCustomers, totalOrders, totalRevenue] = await Promise.all([
-      // Get daily series data with type annotation - FIXED: using correct column names
+      // Get daily series data - ADDED tenant_id filter
       prisma.$queryRaw<SeriesResult[]>`
         SELECT 
           DATE(created_at) as date,
           COUNT(*) as orders,
           SUM(total_price) as revenue
         FROM "Order"
-        WHERE created_at >= ${fromDate} AND created_at <= ${toDate}
+        WHERE created_at >= ${fromDate} 
+          AND created_at <= ${toDate}
+          AND tenant_id = ${tenantId}  -- CRITICAL: Tenant isolation
         GROUP BY DATE(created_at)
         ORDER BY date
       `,
       
-      // Get top customers by spend with type annotation - FIXED: using correct column names
+      // Get top customers by spend - ADDED tenant_id filters
       prisma.$queryRaw<CustomerResult[]>`
         SELECT 
           c.id,
@@ -68,32 +70,41 @@ export async function getBusinessData(from: Date, to: Date): Promise<BusinessDat
           SUM(o.total_price) as spend
         FROM "Customer" c
         JOIN "Order" o ON c.id = o.customer_id::integer
-        WHERE o.created_at >= ${fromDate} AND o.created_at <= ${toDate}
+        WHERE o.created_at >= ${fromDate} 
+          AND o.created_at <= ${toDate}
+          AND o.tenant_id = ${tenantId}  -- CRITICAL: Tenant isolation
+          AND c.tenant_id = ${tenantId}  -- CRITICAL: Tenant isolation
         GROUP BY c.id, c.first_name, c.last_name, c.email
         ORDER BY spend DESC
         LIMIT 5
       `,
       
-      // Get total customer count
-      prisma.customer.count(),
+      // Get total customer count - ADDED tenant_id filter
+      prisma.customer.count({
+        where: {
+          tenant_id: tenantId  // CRITICAL: Tenant isolation
+        }
+      }),
       
-      // Get total orders in date range - FIXED: using created_at
+      // Get total orders in date range - ADDED tenant_id filter
       prisma.order.count({
         where: {
           created_at: {
             gte: fromDate,
             lte: toDate
-          }
+          },
+          tenant_id: tenantId  // CRITICAL: Tenant isolation
         }
       }),
       
-      // Get total revenue in date range - FIXED: using created_at and total_price
+      // Get total revenue in date range - ADDED tenant_id filter
       prisma.order.aggregate({
         where: {
           created_at: {
             gte: fromDate,
             lte: toDate
-          }
+          },
+          tenant_id: tenantId  // CRITICAL: Tenant isolation
         },
         _sum: {
           total_price: true
@@ -104,7 +115,7 @@ export async function getBusinessData(from: Date, to: Date): Promise<BusinessDat
     // Process series data to fill in missing dates
     const processedSeries = processSeriesData(seriesData, fromDate, toDate);
     
-    // Calculate average order value - FIXED: handle possible undefined _sum
+    // Calculate average order value
     const revenueTotal = totalRevenue._sum?.total_price ?? 0;
     const avgOrderValue = totalOrders > 0 
       ? Number(revenueTotal) / totalOrders 
@@ -112,7 +123,6 @@ export async function getBusinessData(from: Date, to: Date): Promise<BusinessDat
 
     return {
       series: processedSeries,
-      // FIXED: topCustomers is now properly typed with correct field names
       topCustomers: topCustomers.map((customer) => ({
         id: customer.id.toString(),
         name: `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || 'Unknown Customer',

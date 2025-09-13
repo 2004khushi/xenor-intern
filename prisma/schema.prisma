@@ -5,9 +5,6 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// Note that some adapters may set a maximum length for the String type by default, please ensure your strings are long
-// enough when changing adapters.
-// See https://www.prisma.io/docs/orm/reference/prisma-schema-reference#string for more information
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -31,7 +28,34 @@ model Session {
   emailVerified Boolean?  @default(false)
 }
 
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
 
+model MagicLinkToken {
+  id        Int       @id @default(autoincrement())
+  email     String
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model Store {
+  id         String   @id @default(cuid())
+  name       String
+  domain     String   @unique
+  created_at DateTime @default(now())
+
+  // Relationships
+  products  Product[]
+  customers Customer[]
+  orders    Order[]
+
+  @@map("stores")
+}
 
 model Product {
   id         Int      @id @default(autoincrement())
@@ -41,9 +65,12 @@ model Product {
   price      Float?
   created_at DateTime @default(now())
 
-  @@map("products")
-  @@index([tenant_id], map: "idx_products_tenant")
+  // Add relationship back - REQUIRED
+  store Store @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+
   @@unique([tenant_id, shopify_id], name: "uniq_products_tenant_shopify")
+  @@index([tenant_id], map: "idx_products_tenant")
+  @@map("products")
 }
 
 model Customer {
@@ -55,9 +82,12 @@ model Customer {
   last_name  String?
   created_at DateTime @default(now())
 
-  @@map("customers")
-  @@index([tenant_id], map: "idx_customers_tenant")
+  // Add relationship
+  store Store @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+
   @@unique([tenant_id, shopify_id], name: "uniq_customers_tenant_shopify")
+  @@index([tenant_id], map: "idx_customers_tenant")
+  @@map("customers")
 }
 
 model Order {
@@ -69,23 +99,10 @@ model Order {
   financial_status String?
   created_at       DateTime @default(now())
 
-  @@map("orders")
-  @@index([tenant_id], map: "idx_orders_tenant")
+  // Add relationship
+  store Store @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+
   @@unique([tenant_id, shopify_id], name: "uniq_orders_tenant_shopify")
+  @@index([tenant_id], map: "idx_orders_tenant")
+  @@map("orders")
 }
-
-model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  createdAt DateTime @default(now())
-}
-
-model MagicLinkToken {
-  id        Int      @id @default(autoincrement())
-  email     String
-  token     String   @unique
-  expiresAt DateTime
-  usedAt    DateTime?
-  createdAt DateTime @default(now())
-}
-

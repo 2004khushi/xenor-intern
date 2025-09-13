@@ -15,33 +15,45 @@ import {
 import { getUserEmail, logout } from "../utils/session.server";
 import { getBusinessData } from "../utils/data.server";
 
+import { getTenantId } from "../utils/tenant.server";
+
+
+
+
 export async function loader({ request }: LoaderFunctionArgs) {
-  const email = await getUserEmail(request);
-  if (!email) {
-    throw redirect("/login");
+  try {
+    // Get tenant ID from cookie
+    const tenantId = getTenantId(request);
+    
+    const url = new URL(request.url);
+    const fromParam = url.searchParams.get("from");
+    const toParam = url.searchParams.get("to");
+
+    const today = new Date();
+    const thirtyDaysAgo = new Date(today);
+    thirtyDaysAgo.setDate(today.getDate() - 30);
+
+    const from = fromParam ? new Date(fromParam) : thirtyDaysAgo;
+    const to = toParam ? new Date(toParam) : today;
+
+    // Pass tenantId to getBusinessData
+    const { series, topCustomers, totals } = await getBusinessData(from, to, tenantId);
+
+    return json({
+      tenantId, // Optional: include if you want to display it
+      from: from.toISOString().split('T')[0],
+      to: to.toISOString().split('T')[0],
+      series,
+      topCustomers,
+      totals,
+    });
+  } catch (error) {
+    // If no tenant ID, redirect to store selection
+    if (error instanceof Error && error.message.includes("Tenant ID not found")) {
+      return redirect("/login");
+    }
+    throw error;
   }
-
-  const url = new URL(request.url);
-  const fromParam = url.searchParams.get("from");
-  const toParam = url.searchParams.get("to");
-
-  const today = new Date();
-  const thirtyDaysAgo = new Date(today);
-  thirtyDaysAgo.setDate(today.getDate() - 30);
-
-  const from = fromParam ? new Date(fromParam) : thirtyDaysAgo;
-  const to = toParam ? new Date(toParam) : today;
-
-  const { series, topCustomers, totals } = await getBusinessData(from, to);
-
-  return json({
-    user: { email },
-    from: from.toISOString().split('T')[0],
-    to: to.toISOString().split('T')[0],
-    series,
-    topCustomers,
-    totals,
-  });
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -131,7 +143,7 @@ export default function Dashboard() {
                   Business Insights Dashboard
                 </h1>
                 <p style={{ color: '#ffdd00', margin: '5px 0 0', fontSize: '14px' }}>
-                  Welcome, {data.user.email}
+                  Welcome!
                 </p>
               </div>
             </div>

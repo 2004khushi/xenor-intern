@@ -1,3 +1,4 @@
+// app/db.server.ts
 import { PrismaClient } from "@prisma/client";
 
 declare global {
@@ -15,7 +16,6 @@ try {
   console.log("[DB] Using host:", host);
 } catch {}
 
-
 const prisma = global.prismaGlobal ?? new PrismaClient();
 
-export default prisma;
+export { prisma }; // Change to named export
