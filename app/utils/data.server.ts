@@ -1,6 +1,6 @@
-import { PrismaClient } from "@prisma/client";
+// app/utils/data.server.ts
+import { prisma } from '../db.server';
 
-const prisma = new PrismaClient();
 
 export interface BusinessData {
   series: Array<{
