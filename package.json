@@ -38,7 +38,7 @@
     "@supabase/auth-helpers-remix": "^0.4.0",
     "@supabase/supabase-js": "^2.57.4",
     "isbot": "^5.1.0",
-    "lucide-react": "^0.544.0",
+    "lucide-react": "^0.554.0",
     "next-auth": "^4.24.11",
     "prisma": "^6.2.1",
     "react": "^18.2.0",
