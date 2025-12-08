@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",
-    "@prisma/client": "^6.2.1",
+    "@prisma/client": "^7.0.0",
     "@remix-run/css-bundle": "^2.17.0",
     "@remix-run/dev": "^2.16.1",
     "@remix-run/fs-routes": "^2.16.1",
@@ -40,7 +40,7 @@
     "isbot": "^5.1.0",
     "lucide-react": "^0.544.0",
     "next-auth": "^4.24.11",
-    "prisma": "^6.2.1",
+    "prisma": "^7.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "recharts": "^3.2.0",
